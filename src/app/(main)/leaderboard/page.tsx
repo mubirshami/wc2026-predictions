@@ -37,8 +37,9 @@ export default async function LeaderboardPage() {
       {/* Your stats card — always visible */}
       {currentUserEntry && (
         <Card className="border-primary/25 bg-primary/5">
-          <CardContent className="px-5 py-4">
-            <div className="flex items-center justify-between gap-4">
+          <CardContent className="px-4 py-3.5 sm:px-5 sm:py-4">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
+              {/* Player info */}
               <div className="flex items-center gap-3 min-w-0">
                 <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/15 font-black text-primary text-sm">
                   {MEDAL[currentUserEntry.rank] ?? `#${currentUserEntry.rank}`}
@@ -57,10 +58,11 @@ export default async function LeaderboardPage() {
                     {currentUserEntry.username}
                     <span className="ml-1.5 text-xs font-semibold text-primary bg-primary/10 px-1.5 py-0.5 rounded-full">you</span>
                   </p>
-                  <p className="text-sm text-muted-foreground">Rank #{currentUserEntry.rank}</p>
+                  <p className="text-xs text-muted-foreground">Rank #{currentUserEntry.rank}</p>
                 </div>
               </div>
-              <div className="flex items-center gap-5 shrink-0">
+              {/* Stats */}
+              <div className="grid grid-cols-3 gap-2 sm:flex sm:items-center sm:gap-5 sm:shrink-0">
                 <Stat icon={<Trophy className="h-3.5 w-3.5" />} value={currentUserEntry.total_points} label="pts" highlight />
                 <Stat icon={<Target className="h-3.5 w-3.5" />} value={currentUserEntry.correct_predictions} label="correct" />
                 <Stat icon={<Percent className="h-3.5 w-3.5" />} value={`${currentUserEntry.accuracy}%`} label="acc" />
@@ -185,7 +187,7 @@ function Stat({
   highlight?: boolean;
 }) {
   return (
-    <div className="flex flex-col items-center gap-0.5">
+    <div className="flex flex-col items-center gap-0.5 rounded-xl bg-background/50 py-2 px-1 sm:bg-transparent sm:py-0 sm:px-0">
       <div className={cn("flex items-center gap-1", highlight ? "text-primary" : "text-muted-foreground")}>
         {icon}
         <span className={cn("text-base font-black tabular-nums", highlight ? "text-primary" : "text-foreground")}>
