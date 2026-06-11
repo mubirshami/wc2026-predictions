@@ -3,7 +3,7 @@
 import { useState, useTransition } from "react";
 import Image from "next/image";
 import { toast } from "sonner";
-import { Lock, CheckCircle2, XCircle, CalendarClock } from "lucide-react";
+import { Lock, CheckCircle2, XCircle, CalendarClock, Loader2 } from "lucide-react";
 import { cn, isMatchLocked, isMatchDayOpen, getPredictionOpenTime, getLockTimeDisplay, getStageLabel, formatMatchDate, formatMatchTime } from "@/lib/utils";
 import { getTeamFlagUrl } from "@/lib/constants/teams";
 import { savePrediction } from "@/app/actions/predictions";
@@ -48,7 +48,6 @@ export function MatchCard({ match }: MatchCardProps) {
   function confirmPredict() {
     if (!pendingConfirm) return;
     const option = pendingConfirm;
-    setPendingConfirm(null);
     const prev = optimisticPrediction;
     setOptimisticPrediction(option);
     startTransition(async () => {
@@ -59,6 +58,7 @@ export function MatchCard({ match }: MatchCardProps) {
       } else {
         toast.success(currentPrediction ? "Prediction updated!" : "Prediction saved!");
       }
+      setPendingConfirm(null); // close dialog only after action completes
     });
   }
 
@@ -298,10 +298,15 @@ export function MatchCard({ match }: MatchCardProps) {
           </div>
 
           <DialogFooter className="gap-2 sm:gap-0">
-            <Button variant="outline" onClick={() => setPendingConfirm(null)}>
+            <Button
+              variant="outline"
+              onClick={() => setPendingConfirm(null)}
+              disabled={pending}
+            >
               Cancel
             </Button>
-            <Button onClick={confirmPredict}>
+            <Button onClick={confirmPredict} disabled={pending}>
+              {pending && <Loader2 className="animate-spin" />}
               {currentPrediction ? "Change" : "Confirm"}
             </Button>
           </DialogFooter>
