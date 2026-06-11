@@ -52,9 +52,9 @@ export default async function LeaderboardPage() {
                 <div className="min-w-0">
                   <p className="font-semibold text-sm truncate">
                     {currentUserEntry.username}
-                    <span className="ml-1.5 text-[10px] font-semibold text-primary bg-primary/10 px-1.5 py-0.5 rounded-full">you</span>
+                    <span className="ml-1.5 text-xs font-semibold text-primary bg-primary/10 px-1.5 py-0.5 rounded-full">you</span>
                   </p>
-                  <p className="text-xs text-muted-foreground">Rank #{currentUserEntry.rank}</p>
+                  <p className="text-sm text-muted-foreground">Rank #{currentUserEntry.rank}</p>
                 </div>
               </div>
               <div className="flex items-center gap-5 shrink-0">
@@ -133,7 +133,7 @@ export default async function LeaderboardPage() {
                       )}>
                         {entry.username}
                         {isMe && (
-                          <span className="ml-1.5 text-[10px] font-semibold text-primary bg-primary/10 px-1.5 py-0.5 rounded-full">you</span>
+                          <span className="ml-1.5 text-xs font-semibold text-primary bg-primary/10 px-1.5 py-0.5 rounded-full">you</span>
                         )}
                       </span>
                       <span className="text-xs text-muted-foreground hidden sm:block">{entry.favorite_team}</span>

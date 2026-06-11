@@ -48,25 +48,25 @@ export function MatchesView({ matches: initialMatches }: MatchesViewProps) {
       </div>
 
       <Tabs defaultValue={defaultTab}>
-        <TabsList className="w-full sm:w-auto h-9 p-1 gap-0.5">
-          <TabsTrigger value="live" className="flex-1 sm:flex-none h-7 text-xs gap-1.5">
+        <TabsList className="w-full sm:w-auto h-10 p-1 gap-0.5">
+          <TabsTrigger value="live" className="flex-1 sm:flex-none h-8 text-sm gap-1.5">
             Live
             {live.length > 0 && (
-              <span className="h-4 min-w-4 rounded-full bg-primary text-primary-foreground text-[10px] font-bold flex items-center justify-center px-1">
+              <span className="h-4 min-w-4 rounded-full bg-primary text-primary-foreground text-xs font-bold flex items-center justify-center px-1">
                 {live.length}
               </span>
             )}
           </TabsTrigger>
-          <TabsTrigger value="upcoming" className="flex-1 sm:flex-none h-7 text-xs gap-1.5">
+          <TabsTrigger value="upcoming" className="flex-1 sm:flex-none h-8 text-sm gap-1.5">
             Upcoming
             {upcoming.length > 0 && (
-              <span className="text-[10px] text-muted-foreground">({upcoming.length})</span>
+              <span className="text-xs text-muted-foreground">({upcoming.length})</span>
             )}
           </TabsTrigger>
-          <TabsTrigger value="completed" className="flex-1 sm:flex-none h-7 text-xs gap-1.5">
+          <TabsTrigger value="completed" className="flex-1 sm:flex-none h-8 text-sm gap-1.5">
             Completed
             {completed.length > 0 && (
-              <span className="text-[10px] text-muted-foreground">({completed.length})</span>
+              <span className="text-xs text-muted-foreground">({completed.length})</span>
             )}
           </TabsTrigger>
         </TabsList>
@@ -137,11 +137,11 @@ function MatchGridGrouped({
         return (
           <div key={day} className="space-y-3">
             <div className="flex items-center gap-3">
-              <span className={`text-sm font-semibold ${isToday ? "text-primary" : "text-foreground/70"}`}>
+              <span className={`text-base font-semibold ${isToday ? "text-primary" : "text-foreground/70"}`}>
                 {label}
               </span>
               <div className="flex-1 h-px bg-border/50" />
-              <span className="text-xs text-muted-foreground">
+              <span className="text-sm text-muted-foreground">
                 {dayMatches.length} match{dayMatches.length !== 1 ? "es" : ""}
               </span>
             </div>

@@ -120,10 +120,10 @@ export default async function StandingsPage() {
               {/* Column headers */}
               <div className="grid items-center border-b border-border/30 bg-muted/10 px-4 py-2"
                 style={{ gridTemplateColumns: "1fr repeat(8, auto)" }}>
-                <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide">Team</span>
+                <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Team</span>
                 {["P", "W", "D", "L", "GF", "GA", "GD", "Pts"].map((h) => (
                   <span key={h} className={cn(
-                    "text-[11px] font-semibold text-muted-foreground uppercase tracking-wide text-center w-7",
+                    "text-xs font-semibold text-muted-foreground uppercase tracking-wide text-center w-7",
                     h === "Pts" && "text-foreground"
                   )}>{h}</span>
                 ))}
@@ -145,7 +145,7 @@ export default async function StandingsPage() {
                       {/* Team */}
                       <div className="flex items-center gap-2.5 min-w-0">
                         <span className={cn(
-                          "text-xs font-bold w-4 shrink-0 tabular-nums",
+                          "text-sm font-bold w-4 shrink-0 tabular-nums",
                           qualified ? "text-primary" : "text-muted-foreground"
                         )}>
                           {i + 1}
@@ -157,7 +157,7 @@ export default async function StandingsPage() {
                         />
                         <span className="text-sm font-medium truncate">{row.team}</span>
                         {qualified && (
-                          <span className="hidden sm:block text-[10px] text-primary/70 bg-primary/10 px-1.5 py-0.5 rounded-full font-medium shrink-0">
+                          <span className="hidden sm:block text-xs text-primary/70 bg-primary/10 px-1.5 py-0.5 rounded-full font-medium shrink-0">
                             ADV
                           </span>
                         )}
@@ -186,7 +186,7 @@ export default async function StandingsPage() {
               {/* Advancement legend */}
               <div className="px-4 py-2 border-t border-border/30 flex items-center gap-1.5">
                 <span className="h-2 w-2 rounded-full bg-primary/40 shrink-0" />
-                <span className="text-[11px] text-muted-foreground">Top 2 advance to Round of 32</span>
+                <span className="text-xs text-muted-foreground">Top 2 advance to Round of 32</span>
               </div>
             </div>
           );

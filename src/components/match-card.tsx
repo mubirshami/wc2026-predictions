@@ -62,20 +62,20 @@ export function MatchCard({ match }: MatchCardProps) {
       )}>
         <div className="flex items-center gap-2">
           {isLive ? (
-            <span className="flex items-center gap-1.5 font-bold text-primary text-[11px] uppercase tracking-wide">
+            <span className="flex items-center gap-1.5 font-bold text-primary text-xs uppercase tracking-wide">
               <span className="live-indicator h-1.5 w-1.5 rounded-full bg-primary" />
               Live
             </span>
           ) : isCompleted ? (
-            <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Full Time</span>
+            <span className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">Full Time</span>
           ) : (
-            <span className="text-xs font-medium text-muted-foreground">
+            <span className="text-sm font-medium text-muted-foreground">
               {getStageLabel(match.stage)}
               {match.group_name ? ` · Group ${match.group_name}` : ""}
             </span>
           )}
         </div>
-        <span className="text-xs text-muted-foreground tabular-nums">
+        <span className="text-sm text-muted-foreground tabular-nums">
           {formatMatchDate(match.kickoff_at)} · {formatMatchTime(match.kickoff_at)}
         </span>
       </div>
@@ -96,7 +96,7 @@ export function MatchCard({ match }: MatchCardProps) {
             )}>
               <TeamFlag url={homeFlagUrl} name={match.home_team} />
             </div>
-            <span className="text-xs font-semibold text-center leading-tight line-clamp-2">
+            <span className="text-sm font-semibold text-center leading-tight line-clamp-2">
               {match.home_team}
             </span>
           </div>
@@ -141,7 +141,7 @@ export function MatchCard({ match }: MatchCardProps) {
             )}>
               <TeamFlag url={awayFlagUrl} name={match.away_team} />
             </div>
-            <span className="text-xs font-semibold text-center leading-tight line-clamp-2">
+            <span className="text-sm font-semibold text-center leading-tight line-clamp-2">
               {match.away_team}
             </span>
           </div>
@@ -153,8 +153,8 @@ export function MatchCard({ match }: MatchCardProps) {
 
         {/* Future day — not open yet */}
         {isUpcoming && !dayOpen && (
-          <div className="flex items-center justify-center gap-1.5 py-2 text-xs text-muted-foreground bg-muted/40 rounded-xl">
-            <CalendarClock className="h-3.5 w-3.5 shrink-0" />
+          <div className="flex items-center justify-center gap-1.5 py-2 text-sm text-muted-foreground bg-muted/40 rounded-xl">
+            <CalendarClock className="h-4 w-4 shrink-0" />
             <span>
               Opens {formatMatchDate(getPredictionOpenTime(match.kickoff_at).toISOString())} · {formatMatchTime(getPredictionOpenTime(match.kickoff_at).toISOString())}
             </span>
@@ -171,7 +171,7 @@ export function MatchCard({ match }: MatchCardProps) {
                 disabled={pending}
               >
                 {homeFlagUrl && <img src={homeFlagUrl} alt={match.home_team} className="w-5 h-3.5 object-cover rounded-sm shrink-0" />}
-                <span className="text-xs font-semibold truncate">{shortName(match.home_team)}</span>
+                <span className="text-sm font-semibold truncate">{shortName(match.home_team)}</span>
               </PredictButton>
 
               {isGroup && (
@@ -181,7 +181,7 @@ export function MatchCard({ match }: MatchCardProps) {
                   disabled={pending}
                   className="px-3"
                 >
-                  <span className="text-xs font-semibold">Draw</span>
+                  <span className="text-sm font-semibold">Draw</span>
                 </PredictButton>
               )}
 
@@ -191,10 +191,10 @@ export function MatchCard({ match }: MatchCardProps) {
                 disabled={pending}
               >
                 {awayFlagUrl && <img src={awayFlagUrl} alt={match.away_team} className="w-5 h-3.5 object-cover rounded-sm shrink-0" />}
-                <span className="text-xs font-semibold truncate">{shortName(match.away_team)}</span>
+                <span className="text-sm font-semibold truncate">{shortName(match.away_team)}</span>
               </PredictButton>
             </div>
-            <p className="text-xs text-muted-foreground text-center">
+            <p className="text-sm text-muted-foreground text-center">
               {currentPrediction ? "Tap to change prediction" : getLockTimeDisplay(match.kickoff_at)}
             </p>
           </div>
@@ -202,8 +202,8 @@ export function MatchCard({ match }: MatchCardProps) {
 
         {/* Locked */}
         {isUpcoming && dayOpen && locked && (
-          <div className="flex items-center justify-center gap-1.5 py-2 text-xs text-muted-foreground bg-muted/30 rounded-xl">
-            <Lock className="h-3 w-3 shrink-0" />
+          <div className="flex items-center justify-center gap-1.5 py-2 text-sm text-muted-foreground bg-muted/30 rounded-xl">
+            <Lock className="h-3.5 w-3.5 shrink-0" />
             <span>
               {currentPrediction ? predictionText(currentPrediction, match) : "No prediction made"}
             </span>
@@ -212,8 +212,8 @@ export function MatchCard({ match }: MatchCardProps) {
 
         {/* Live */}
         {isLive && (
-          <div className="flex items-center justify-center gap-1.5 py-2 text-xs bg-primary/8 rounded-xl">
-            <Lock className="h-3 w-3 shrink-0 text-primary" />
+          <div className="flex items-center justify-center gap-1.5 py-2 text-sm bg-primary/8 rounded-xl">
+            <Lock className="h-3.5 w-3.5 shrink-0 text-primary" />
             <span className="text-muted-foreground">
               {currentPrediction ? predictionText(currentPrediction, match) : "No prediction made"}
             </span>
@@ -223,13 +223,13 @@ export function MatchCard({ match }: MatchCardProps) {
         {/* Completed */}
         {isCompleted && (
           <div className="flex items-center justify-between px-1">
-            <div className="flex items-center gap-1.5 text-xs">
+            <div className="flex items-center gap-1.5 text-sm">
               {currentPrediction ? (
                 <>
                   {pointsAwarded != null && (
                     pointsAwarded > 0
-                      ? <CheckCircle2 className="h-3.5 w-3.5 text-primary shrink-0" />
-                      : <XCircle className="h-3.5 w-3.5 text-destructive/60 shrink-0" />
+                      ? <CheckCircle2 className="h-4 w-4 text-primary shrink-0" />
+                      : <XCircle className="h-4 w-4 text-destructive/60 shrink-0" />
                   )}
                   <span className="text-muted-foreground">{predictionText(currentPrediction, match)}</span>
                 </>
@@ -239,7 +239,7 @@ export function MatchCard({ match }: MatchCardProps) {
             </div>
             {pointsAwarded != null && (
               <span className={cn(
-                "text-sm font-bold tabular-nums",
+                "text-base font-bold tabular-nums",
                 pointsAwarded > 0 ? "text-primary" : "text-muted-foreground/40"
               )}>
                 {pointsAwarded > 0 ? `+${pointsAwarded}` : "0"} pts
