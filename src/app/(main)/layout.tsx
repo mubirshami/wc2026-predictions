@@ -29,8 +29,8 @@ export default async function MainLayout({
       <main className="flex-1 mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8 py-6">
         {children}
       </main>
-      <footer className="border-t border-border/30 py-4 text-center text-xs text-muted-foreground">
-        FIFA World Cup 2026 &mdash; USA, Canada &amp; Mexico
+      <footer className="border-t border-border/20 py-4 text-center text-xs text-muted-foreground/50">
+        FIFA World Cup 2026 · USA, Canada &amp; Mexico · June 11 – July 19, 2026
       </footer>
     </div>
   );

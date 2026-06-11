@@ -116,7 +116,7 @@ export default function CompleteProfilePage() {
         <CardDescription>Choose a username and your favourite team</CardDescription>
       </CardHeader>
 
-      <form onSubmit={handleSubmit(onSubmit)}>
+      <form onSubmit={handleSubmit(onSubmit)} noValidate>
         <CardContent className="space-y-4">
           {serverError && (
             <div className="rounded-lg bg-destructive/10 border border-destructive/20 px-4 py-3 text-sm text-destructive">
