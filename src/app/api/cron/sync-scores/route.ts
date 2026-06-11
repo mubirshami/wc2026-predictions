@@ -1,11 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
-import {
-  fetchLiveAndRecentMatches,
-  mapFDStatus,
-  mapFDScore,
-  mapFDWinner,
-} from "@/lib/football-data";
+import { fetchAllGames } from "@/lib/worldcup26";
 
 export async function GET(request: Request) {
   const authHeader = request.headers.get("authorization");
@@ -20,47 +15,72 @@ export async function GET(request: Request) {
     process.env.SUPABASE_SERVICE_ROLE_KEY!
   );
 
-  if (!process.env.FOOTBALL_DATA_KEY) {
-    return NextResponse.json({ error: "FOOTBALL_DATA_KEY not configured" }, { status: 503 });
-  }
-
   const synced: object[] = [];
   const errors: string[] = [];
 
   try {
-    const matches = await fetchLiveAndRecentMatches();
+    // Fetch all games from worldcup26.ir and build a lookup by team names
+    const games = await fetchAllGames();
+    const gameMap = new Map<string, (typeof games)[0]>();
+    for (const game of games) {
+      const key = `${game.home_team.toLowerCase()}|${game.away_team.toLowerCase()}`;
+      gameMap.set(key, game);
+    }
 
-    for (const match of matches) {
-      const newStatus = mapFDStatus(match.status);
-      const newWinner = mapFDWinner(match);
-      const score = mapFDScore(match);
+    // Fetch all DB matches that still need updating
+    const { data: dbMatches, error: dbError } = await supabase
+      .from("matches")
+      .select("id, home_team, away_team, status, home_score, away_score")
+      .in("status", ["upcoming", "live"]);
+
+    if (dbError) throw new Error(dbError.message);
+
+    for (const dbMatch of dbMatches ?? []) {
+      const key = `${dbMatch.home_team.toLowerCase()}|${dbMatch.away_team.toLowerCase()}`;
+      const game = gameMap.get(key);
+
+      if (!game) continue; // not in worldcup26 data yet — skip
 
       const updatePayload: Record<string, unknown> = {
-        status: newStatus,
-        home_score: score.home,
-        away_score: score.away,
+        status: game.status,
         result_source: "api",
+        live_minute: game.live_minute,
+        home_scorers: game.home_scorers,
+        away_scorers: game.away_scorers,
       };
 
-      if (newWinner) {
-        updatePayload.winner = newWinner;
+      // Only update scores when the API provides them
+      if (game.home_score !== null) {
+        updatePayload.home_score = game.home_score;
+        updatePayload.away_score = game.away_score;
+      }
+
+      // Set winner when completed
+      if (game.status === "completed" && game.home_score !== null && game.away_score !== null) {
+        if (game.home_score > game.away_score) {
+          updatePayload.winner = "home";
+        } else if (game.away_score > game.home_score) {
+          updatePayload.winner = "away";
+        } else {
+          updatePayload.winner = "draw";
+        }
         updatePayload.scores_calculated = false;
       }
 
       const { error } = await supabase
         .from("matches")
         .update(updatePayload)
-        .eq("api_football_id", match.id);
+        .eq("id", dbMatch.id);
 
       if (error) {
-        errors.push(`[${match.homeTeam.name} vs ${match.awayTeam.name}] ${error.message}`);
+        errors.push(`[${dbMatch.home_team} vs ${dbMatch.away_team}] ${error.message}`);
       } else {
         synced.push({
-          match: `${match.homeTeam.name} vs ${match.awayTeam.name}`,
-          status: newStatus,
-          score: score.home !== null ? `${score.home} - ${score.away}` : "not started",
-          winner: newWinner ?? "pending",
-          kickoff: match.utcDate,
+          match: `${dbMatch.home_team} vs ${dbMatch.away_team}`,
+          status: game.status,
+          score: game.home_score !== null ? `${game.home_score} - ${game.away_score}` : "not started",
+          minute: game.live_minute ?? "—",
+          scorers: [...game.home_scorers, ...game.away_scorers],
         });
       }
     }
@@ -68,7 +88,7 @@ export async function GET(request: Request) {
     return NextResponse.json({
       success: true,
       syncedAt: new Date().toISOString(),
-      processed: matches.length,
+      processed: (dbMatches ?? []).length,
       updated: synced.length,
       matches: synced,
       errors: errors.length > 0 ? errors : undefined,

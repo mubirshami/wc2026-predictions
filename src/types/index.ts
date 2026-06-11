@@ -26,6 +26,9 @@ export interface Match {
   status: MatchStatus;
   home_score: number | null;
   away_score: number | null;
+  home_scorers: string[] | null;
+  away_scorers: string[] | null;
+  live_minute: number | null;
   winner: PredictionOption | null;
   result_source: "api" | "manual" | null;
   scores_calculated: boolean;
