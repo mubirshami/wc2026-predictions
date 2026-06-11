@@ -1,7 +1,7 @@
 import Image from "next/image";
 import { createClient } from "@/lib/supabase/server";
 import { getTeamFlagUrl } from "@/lib/constants/teams";
-import { Users, Trophy, Target, Percent } from "lucide-react";
+import { Users, Trophy, Target } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import type { LeaderboardEntry } from "@/types";
 import { cn } from "@/lib/utils";
@@ -65,7 +65,7 @@ export default async function LeaderboardPage() {
               <div className="grid grid-cols-3 gap-2 sm:flex sm:items-center sm:gap-5 sm:shrink-0">
                 <Stat icon={<Trophy className="h-3.5 w-3.5" />} value={currentUserEntry.total_points} label="pts" highlight />
                 <Stat icon={<Target className="h-3.5 w-3.5" />} value={currentUserEntry.correct_predictions} label="correct" />
-                <Stat icon={<Percent className="h-3.5 w-3.5" />} value={`${currentUserEntry.accuracy}%`} label="acc" />
+                <Stat value={`${currentUserEntry.accuracy}%`} label="acc" />
               </div>
             </div>
           </CardContent>
@@ -82,9 +82,9 @@ export default async function LeaderboardPage() {
       ) : (
         <Card className="overflow-hidden">
           {/* Column headers */}
-          <div className="grid grid-cols-[auto_1fr_auto] sm:grid-cols-[auto_1fr_auto_auto_auto] items-center gap-x-4 px-4 py-2.5 border-b border-border/50 bg-muted/30">
-            <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide w-8 text-center">#</span>
-            <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Player</span>
+          <div className="grid grid-cols-[2rem_1fr_4rem] sm:grid-cols-[2rem_1fr_5rem_6rem_4.5rem] items-center px-4 py-2.5 border-b border-border/50 bg-muted/30">
+            <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide text-center">#</span>
+            <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide pl-2">Player</span>
             <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide text-right hidden sm:block">Correct</span>
             <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide text-right hidden sm:block">Accuracy</span>
             <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide text-right">Points</span>
@@ -100,13 +100,13 @@ export default async function LeaderboardPage() {
                 <div
                   key={entry.id}
                   className={cn(
-                    "grid grid-cols-[auto_1fr_auto] sm:grid-cols-[auto_1fr_auto_auto_auto] items-center gap-x-4 px-4 py-3 transition-colors",
+                    "grid grid-cols-[2rem_1fr_4rem] sm:grid-cols-[2rem_1fr_5rem_6rem_4.5rem] items-center px-4 py-3 transition-colors",
                     isMe ? "bg-primary/5" : i % 2 === 0 ? "bg-transparent" : "bg-muted/10",
                     "hover:bg-muted/20"
                   )}
                 >
                   {/* Rank */}
-                  <div className="w-8 text-center">
+                  <div className="text-center">
                     {medal ? (
                       <span className="text-lg leading-none">{medal}</span>
                     ) : (
@@ -120,7 +120,7 @@ export default async function LeaderboardPage() {
                   </div>
 
                   {/* Player */}
-                  <div className="flex items-center gap-2.5 min-w-0">
+                  <div className="flex items-center gap-2.5 min-w-0 pl-2">
                     {entry.favorite_team ? (
                       <Image
                         src={getTeamFlagUrl(entry.favorite_team)}
@@ -181,7 +181,7 @@ function Stat({
   label,
   highlight = false,
 }: {
-  icon: React.ReactNode;
+  icon?: React.ReactNode;
   value: number | string;
   label: string;
   highlight?: boolean;

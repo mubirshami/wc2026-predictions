@@ -41,7 +41,7 @@ export function fetchLiveAndRecentMatches() {
 }
 
 export function mapFDStatus(status: string): "upcoming" | "live" | "completed" {
-  if (status === "IN_PLAY" || status === "PAUSED" || status === "HALF_TIME") return "live";
+  if (["IN_PLAY", "PAUSED", "HALF_TIME", "EXTRA_TIME", "PENALTY_SHOOTOUT", "SUSPENDED"].includes(status)) return "live";
   if (status === "FINISHED" || status === "AWARDED") return "completed";
   return "upcoming";
 }
@@ -65,7 +65,7 @@ export function mapFDGroup(group: string | null): string | null {
 }
 
 export function mapFDScore(match: FDMatch): { home: number | null; away: number | null } {
-  return match.score.fullTime ?? { home: null, away: null };
+  return match.score.fullTime ?? match.score.halfTime ?? { home: null, away: null };
 }
 
 export function mapFDWinner(match: FDMatch): "home" | "away" | "draw" | null {
