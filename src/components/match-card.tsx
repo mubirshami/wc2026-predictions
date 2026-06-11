@@ -8,6 +8,14 @@ import { cn, isMatchLocked, isMatchDayOpen, getPredictionOpenTime, getLockTimeDi
 import { getTeamFlagUrl } from "@/lib/constants/teams";
 import { savePrediction } from "@/app/actions/predictions";
 import type { MatchWithPrediction, PredictionOption } from "@/types";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
 
 interface MatchCardProps {
   match: MatchWithPrediction;
@@ -18,6 +26,7 @@ export function MatchCard({ match }: MatchCardProps) {
   const [optimisticPrediction, setOptimisticPrediction] = useState<PredictionOption | null | undefined>(
     match.user_prediction?.predicted_winner ?? null
   );
+  const [pendingConfirm, setPendingConfirm] = useState<PredictionOption | null>(null);
 
   const locked = isMatchLocked(match.kickoff_at);
   const dayOpen = isMatchDayOpen(match.kickoff_at);
@@ -31,8 +40,15 @@ export function MatchCard({ match }: MatchCardProps) {
   const homeFlagUrl = getTeamFlagUrl(match.home_team);
   const awayFlagUrl = getTeamFlagUrl(match.away_team);
 
-  function handlePredict(option: PredictionOption) {
+  function requestPredict(option: PredictionOption) {
     if (!dayOpen || locked || pending) return;
+    setPendingConfirm(option);
+  }
+
+  function confirmPredict() {
+    if (!pendingConfirm) return;
+    const option = pendingConfirm;
+    setPendingConfirm(null);
     const prev = optimisticPrediction;
     setOptimisticPrediction(option);
     startTransition(async () => {
@@ -40,6 +56,8 @@ export function MatchCard({ match }: MatchCardProps) {
       if (!result.success) {
         setOptimisticPrediction(prev);
         toast.error(result.error ?? "Failed to save prediction");
+      } else {
+        toast.success(currentPrediction ? "Prediction updated!" : "Prediction saved!");
       }
     });
   }
@@ -168,7 +186,7 @@ export function MatchCard({ match }: MatchCardProps) {
             <div className="grid gap-1.5" style={{ gridTemplateColumns: isGroup ? "1fr auto 1fr" : "1fr 1fr" }}>
               <PredictButton
                 selected={currentPrediction === "home"}
-                onClick={() => handlePredict("home")}
+                onClick={() => requestPredict("home")}
                 disabled={pending}
               >
                 {homeFlagUrl && <Image src={homeFlagUrl} alt={match.home_team} width={20} height={14} className="w-5 h-3.5 object-cover rounded-sm shrink-0" />}
@@ -178,7 +196,7 @@ export function MatchCard({ match }: MatchCardProps) {
               {isGroup && (
                 <PredictButton
                   selected={currentPrediction === "draw"}
-                  onClick={() => handlePredict("draw")}
+                  onClick={() => requestPredict("draw")}
                   disabled={pending}
                   className="px-3"
                 >
@@ -188,7 +206,7 @@ export function MatchCard({ match }: MatchCardProps) {
 
               <PredictButton
                 selected={currentPrediction === "away"}
-                onClick={() => handlePredict("away")}
+                onClick={() => requestPredict("away")}
                 disabled={pending}
               >
                 {awayFlagUrl && <Image src={awayFlagUrl} alt={match.away_team} width={20} height={14} className="w-5 h-3.5 object-cover rounded-sm shrink-0" />}
@@ -249,6 +267,46 @@ export function MatchCard({ match }: MatchCardProps) {
           </div>
         )}
       </div>
+
+      {/* Prediction confirmation dialog */}
+      <Dialog open={!!pendingConfirm} onOpenChange={(open) => { if (!open) setPendingConfirm(null); }}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle>
+              {currentPrediction ? "Change prediction?" : "Confirm prediction"}
+            </DialogTitle>
+          </DialogHeader>
+
+          <div className="space-y-3 py-1">
+            <p className="text-sm text-muted-foreground">
+              {match.home_team} <span className="text-muted-foreground/50">vs</span> {match.away_team}
+            </p>
+
+            {currentPrediction && pendingConfirm !== currentPrediction && (
+              <div className="flex items-center gap-2 text-sm">
+                <span className="text-muted-foreground line-through">{predictionLabel(currentPrediction, match)}</span>
+                <span className="text-muted-foreground">→</span>
+                <span className="font-semibold text-foreground">{predictionLabel(pendingConfirm!, match)}</span>
+              </div>
+            )}
+
+            {(!currentPrediction || pendingConfirm === currentPrediction) && (
+              <p className="text-sm font-semibold">
+                {pendingConfirm ? predictionLabel(pendingConfirm, match) : ""}
+              </p>
+            )}
+          </div>
+
+          <DialogFooter className="gap-2 sm:gap-0">
+            <Button variant="outline" onClick={() => setPendingConfirm(null)}>
+              Cancel
+            </Button>
+            <Button onClick={confirmPredict}>
+              {currentPrediction ? "Change" : "Confirm"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
@@ -328,4 +386,10 @@ function predictionText(prediction: PredictionOption, match: MatchWithPrediction
   if (prediction === "draw") return "Draw";
   const team = prediction === "home" ? match.home_team : match.away_team;
   return `${shortName(team)} win`;
+}
+
+function predictionLabel(prediction: PredictionOption, match: MatchWithPrediction): string {
+  if (prediction === "draw") return "Draw";
+  const team = prediction === "home" ? match.home_team : match.away_team;
+  return `${team} to win`;
 }
