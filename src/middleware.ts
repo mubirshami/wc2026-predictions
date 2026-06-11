@@ -38,7 +38,9 @@ export async function middleware(request: NextRequest) {
     pathname.startsWith("/reset-password") ||
     pathname.startsWith("/check-email");
 
-  const isPublicApiRoute = pathname.startsWith("/api/cron");
+  const isPublicApiRoute =
+    pathname.startsWith("/api/cron") ||
+    pathname.startsWith("/api/auth/send-email");
   const isAuthCallback = pathname.startsWith("/auth/callback");
   const isAdminRoute = pathname.startsWith("/admin");
   const isCompleteProfile = pathname.startsWith("/complete-profile");
