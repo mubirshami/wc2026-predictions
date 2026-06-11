@@ -15,9 +15,8 @@ export interface FDMatch {
   score: {
     winner: "HOME_TEAM" | "AWAY_TEAM" | "DRAW" | null;
     duration: "REGULAR" | "EXTRA_TIME" | "PENALTY_SHOOTOUT";
-    fullTime: { home: number | null; away: number | null };
-    extraTime: { home: number | null; away: number | null };
-    penalties: { home: number | null; away: number | null };
+    fullTime: { home: number | null; away: number | null } | null;
+    halfTime: { home: number | null; away: number | null } | null;
   };
   venue: string | null;
 }
@@ -66,11 +65,7 @@ export function mapFDGroup(group: string | null): string | null {
 }
 
 export function mapFDScore(match: FDMatch): { home: number | null; away: number | null } {
-  const { fullTime, extraTime, penalties } = match.score;
-  // Use the most complete score available
-  if (penalties.home !== null) return penalties;
-  if (extraTime.home !== null) return extraTime;
-  return fullTime;
+  return match.score.fullTime ?? { home: null, away: null };
 }
 
 export function mapFDWinner(match: FDMatch): "home" | "away" | "draw" | null {
