@@ -67,13 +67,13 @@ export default function SignUpPage() {
 
   return (
     <Card className="border-border/50">
-      <CardHeader className="text-center">
+      <CardHeader className="text-center pb-4">
         <CardTitle className="text-xl">Create an account</CardTitle>
         <CardDescription>Join the World Cup 2026 Prediction League</CardDescription>
       </CardHeader>
 
-      <form onSubmit={handleSubmit(onSubmit)}>
-        <CardContent className="space-y-4">
+      <form onSubmit={handleSubmit(onSubmit)} noValidate>
+        <CardContent className="space-y-3 pb-4">
           {serverError && (
             <div className="rounded-lg bg-destructive/10 border border-destructive/20 px-4 py-3 text-sm text-destructive">
               {serverError}
@@ -126,7 +126,7 @@ export default function SignUpPage() {
           </div>
         </CardContent>
 
-        <CardFooter className="flex flex-col gap-4">
+        <CardFooter className="flex flex-col gap-3 pt-2">
           <Button type="submit" className="w-full" disabled={isSubmitting}>
             {isSubmitting && <Loader2 className="animate-spin" />}
             Create account

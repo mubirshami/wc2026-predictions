@@ -1,25 +1,17 @@
 import { createClient } from "@/lib/supabase/server";
 import { getTeamFlagUrl } from "@/lib/constants/teams";
-import { Trophy, Users } from "lucide-react";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Users, Trophy, Target, Percent } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
 import type { LeaderboardEntry } from "@/types";
+import { cn } from "@/lib/utils";
 
 export const revalidate = 60;
 
+const MEDAL: Record<number, string> = { 1: "🥇", 2: "🥈", 3: "🥉" };
+
 export default async function LeaderboardPage() {
   const supabase = await createClient();
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const { data: { user } } = await supabase.auth.getUser();
 
   const { data: entries } = await supabase
     .from("leaderboard")
@@ -30,133 +22,172 @@ export default async function LeaderboardPage() {
   const currentUserEntry = leaderboard.find((e) => e.id === user?.id);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-5 animate-fade-in max-w-2xl mx-auto">
+
+      {/* Header */}
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">Leaderboard</h1>
+        <h1 className="text-2xl font-bold tracking-tight">Leaderboard</h1>
         <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
           <Users className="h-4 w-4" />
-          <span>{leaderboard.length} players</span>
+          <span>{leaderboard.length} {leaderboard.length === 1 ? "player" : "players"}</span>
         </div>
       </div>
 
-      {/* Current user rank card */}
+      {/* Your stats card — always visible */}
       {currentUserEntry && (
-        <Card className="border-primary/30 bg-primary/5">
-          <CardContent className="py-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <RankBadge rank={currentUserEntry.rank} />
-                <div>
-                  <div className="font-semibold flex items-center gap-2">
-                    {currentUserEntry.favorite_team && (
-                      <img src={getTeamFlagUrl(currentUserEntry.favorite_team)} alt={currentUserEntry.favorite_team} className="h-4 w-auto rounded-sm" />
-                    )}
+        <Card className="border-primary/25 bg-primary/5">
+          <CardContent className="px-5 py-4">
+            <div className="flex items-center justify-between gap-4">
+              <div className="flex items-center gap-3 min-w-0">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/15 font-black text-primary text-sm">
+                  {MEDAL[currentUserEntry.rank] ?? `#${currentUserEntry.rank}`}
+                </div>
+                {currentUserEntry.favorite_team && (
+                  <img
+                    src={getTeamFlagUrl(currentUserEntry.favorite_team)}
+                    alt={currentUserEntry.favorite_team}
+                    className="h-6 w-9 object-cover rounded-md shrink-0"
+                  />
+                )}
+                <div className="min-w-0">
+                  <p className="font-semibold text-sm truncate">
                     {currentUserEntry.username}
-                    <span className="text-xs text-primary font-normal">(you)</span>
-                  </div>
-                  <div className="text-xs text-muted-foreground">
-                    {currentUserEntry.correct_predictions} correct ·{" "}
-                    {currentUserEntry.accuracy}% accuracy
-                  </div>
+                    <span className="ml-1.5 text-[10px] font-semibold text-primary bg-primary/10 px-1.5 py-0.5 rounded-full">you</span>
+                  </p>
+                  <p className="text-xs text-muted-foreground">Rank #{currentUserEntry.rank}</p>
                 </div>
               </div>
-              <div className="text-right">
-                <div className="text-2xl font-bold text-primary">
-                  {currentUserEntry.total_points}
-                </div>
-                <div className="text-xs text-muted-foreground">pts</div>
+              <div className="flex items-center gap-5 shrink-0">
+                <Stat icon={<Trophy className="h-3.5 w-3.5" />} value={currentUserEntry.total_points} label="pts" highlight />
+                <Stat icon={<Target className="h-3.5 w-3.5" />} value={currentUserEntry.correct_predictions} label="correct" />
+                <Stat icon={<Percent className="h-3.5 w-3.5" />} value={`${currentUserEntry.accuracy}%`} label="acc" />
               </div>
             </div>
           </CardContent>
         </Card>
       )}
 
-      {/* Full table */}
-      <Card>
-        <CardHeader className="pb-2">
-          <CardTitle className="flex items-center gap-2 text-base">
-            <Trophy className="h-4 w-4 text-accent" />
-            Rankings
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="p-0">
-          {leaderboard.length === 0 ? (
-            <div className="py-12 text-center text-muted-foreground text-sm">
-              No predictions made yet. Be the first!
-            </div>
-          ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="w-12 text-center">#</TableHead>
-                  <TableHead>Player</TableHead>
-                  <TableHead className="text-right hidden sm:table-cell">Predictions</TableHead>
-                  <TableHead className="text-right hidden sm:table-cell">Accuracy</TableHead>
-                  <TableHead className="text-right">Points</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {leaderboard.map((entry) => (
-                  <TableRow
-                    key={entry.id}
-                    className={entry.id === user?.id ? "bg-primary/5" : ""}
-                  >
-                    <TableCell className="text-center font-medium">
-                      <RankBadge rank={entry.rank} inline />
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-2">
-                        {entry.favorite_team && (
-                          <img src={getTeamFlagUrl(entry.favorite_team)} alt={entry.favorite_team} className="h-5 w-auto rounded-sm shrink-0" />
+      {/* Rankings */}
+      {leaderboard.length === 0 ? (
+        <Card>
+          <CardContent className="py-16 text-center text-muted-foreground text-sm">
+            No predictions made yet. Be the first!
+          </CardContent>
+        </Card>
+      ) : (
+        <Card className="overflow-hidden">
+          {/* Column headers */}
+          <div className="grid grid-cols-[auto_1fr_auto] sm:grid-cols-[auto_1fr_auto_auto_auto] items-center gap-x-4 px-4 py-2.5 border-b border-border/50 bg-muted/30">
+            <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide w-8 text-center">#</span>
+            <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Player</span>
+            <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide text-right hidden sm:block">Correct</span>
+            <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide text-right hidden sm:block">Accuracy</span>
+            <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide text-right">Points</span>
+          </div>
+
+          <div className="divide-y divide-border/40">
+            {leaderboard.map((entry, i) => {
+              const isMe = entry.id === user?.id;
+              const medal = MEDAL[entry.rank];
+              const isTop3 = entry.rank <= 3;
+
+              return (
+                <div
+                  key={entry.id}
+                  className={cn(
+                    "grid grid-cols-[auto_1fr_auto] sm:grid-cols-[auto_1fr_auto_auto_auto] items-center gap-x-4 px-4 py-3 transition-colors",
+                    isMe ? "bg-primary/5" : i % 2 === 0 ? "bg-transparent" : "bg-muted/10",
+                    "hover:bg-muted/20"
+                  )}
+                >
+                  {/* Rank */}
+                  <div className="w-8 text-center">
+                    {medal ? (
+                      <span className="text-lg leading-none">{medal}</span>
+                    ) : (
+                      <span className={cn(
+                        "text-sm font-bold tabular-nums",
+                        isMe ? "text-primary" : "text-muted-foreground"
+                      )}>
+                        {entry.rank}
+                      </span>
+                    )}
+                  </div>
+
+                  {/* Player */}
+                  <div className="flex items-center gap-2.5 min-w-0">
+                    {entry.favorite_team ? (
+                      <img
+                        src={getTeamFlagUrl(entry.favorite_team)}
+                        alt={entry.favorite_team}
+                        className="h-5 w-7 object-cover rounded-sm shrink-0"
+                      />
+                    ) : (
+                      <div className="h-5 w-7 rounded-sm bg-muted shrink-0" />
+                    )}
+                    <div className="min-w-0">
+                      <span className={cn(
+                        "text-sm font-semibold truncate block",
+                        isTop3 && !isMe && "text-foreground",
+                        isMe && "text-primary"
+                      )}>
+                        {entry.username}
+                        {isMe && (
+                          <span className="ml-1.5 text-[10px] font-semibold text-primary bg-primary/10 px-1.5 py-0.5 rounded-full">you</span>
                         )}
-                        <div>
-                          <div className="font-medium text-sm">
-                            {entry.username}
-                            {entry.id === user?.id && (
-                              <span className="ml-1.5 text-[10px] text-primary">
-                                you
-                              </span>
-                            )}
-                          </div>
-                          {entry.favorite_team && (
-                            <div className="text-[10px] text-muted-foreground hidden sm:block">
-                              {entry.favorite_team}
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    </TableCell>
-                    <TableCell className="text-right text-sm hidden sm:table-cell">
-                      {entry.correct_predictions}/{entry.total_predictions}
-                    </TableCell>
-                    <TableCell className="text-right text-sm hidden sm:table-cell">
-                      {entry.accuracy}%
-                    </TableCell>
-                    <TableCell className="text-right font-bold text-primary">
-                      {entry.total_points}
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          )}
-        </CardContent>
-      </Card>
+                      </span>
+                      <span className="text-xs text-muted-foreground hidden sm:block">{entry.favorite_team}</span>
+                    </div>
+                  </div>
+
+                  {/* Correct */}
+                  <span className="text-sm tabular-nums text-muted-foreground text-right hidden sm:block">
+                    {entry.correct_predictions}<span className="text-muted-foreground/50">/{entry.total_predictions}</span>
+                  </span>
+
+                  {/* Accuracy */}
+                  <span className="text-sm tabular-nums text-muted-foreground text-right hidden sm:block">
+                    {entry.accuracy}%
+                  </span>
+
+                  {/* Points */}
+                  <span className={cn(
+                    "text-sm font-bold tabular-nums text-right",
+                    isMe ? "text-primary" : isTop3 ? "text-foreground" : "text-muted-foreground"
+                  )}>
+                    {entry.total_points}
+                    <span className="text-xs font-normal text-muted-foreground ml-0.5">pt</span>
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+        </Card>
+      )}
     </div>
   );
 }
 
-function RankBadge({ rank, inline = false }: { rank: number; inline?: boolean }) {
-  if (rank === 1) {
-    return <span className={inline ? "text-lg" : "text-2xl"}>🥇</span>;
-  }
-  if (rank === 2) {
-    return <span className={inline ? "text-lg" : "text-2xl"}>🥈</span>;
-  }
-  if (rank === 3) {
-    return <span className={inline ? "text-lg" : "text-2xl"}>🥉</span>;
-  }
+function Stat({
+  icon,
+  value,
+  label,
+  highlight = false,
+}: {
+  icon: React.ReactNode;
+  value: number | string;
+  label: string;
+  highlight?: boolean;
+}) {
   return (
-    <span className="text-sm font-semibold text-muted-foreground">{rank}</span>
+    <div className="flex flex-col items-center gap-0.5">
+      <div className={cn("flex items-center gap-1", highlight ? "text-primary" : "text-muted-foreground")}>
+        {icon}
+        <span className={cn("text-base font-black tabular-nums", highlight ? "text-primary" : "text-foreground")}>
+          {value}
+        </span>
+      </div>
+      <span className="text-[10px] text-muted-foreground uppercase tracking-wide">{label}</span>
+    </div>
   );
 }

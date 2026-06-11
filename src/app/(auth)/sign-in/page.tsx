@@ -54,22 +54,19 @@ export default function SignInPage() {
 
     setSuccess(true);
     toast.success("Welcome back!", { duration: 1750 });
-
-    setTimeout(() => {
-      router.push("/");
-    }, 1000);
+    router.push("/");
     router.refresh();
   }
 
   return (
     <Card className="border-border/50">
-      <CardHeader className="text-center">
+      <CardHeader className="text-center pb-4">
         <CardTitle className="text-xl">Welcome back</CardTitle>
         <CardDescription>Enter your credentials to continue</CardDescription>
       </CardHeader>
 
-      <form onSubmit={handleSubmit(onSubmit)}>
-        <CardContent className="space-y-4">
+      <form onSubmit={handleSubmit(onSubmit)} noValidate>
+        <CardContent className="space-y-3 pb-4">
           {serverError && (
             <div className="rounded-lg bg-destructive/10 border border-destructive/20 px-4 py-3 text-sm text-destructive">
               {serverError}
@@ -115,10 +112,10 @@ export default function SignInPage() {
           </div>
         </CardContent>
 
-        <CardFooter className="flex flex-col gap-4">
-          <Button type="submit" className="w-full" disabled={isSubmitting}>
-            {isSubmitting && <Loader2 className="animate-spin" />}
-            Sign in
+        <CardFooter className="flex flex-col gap-3 pt-2">
+          <Button type="submit" className="w-full" disabled={isSubmitting || success}>
+            {(isSubmitting || success) && <Loader2 className="animate-spin" />}
+            {success ? "Signing in…" : "Sign in"}
           </Button>
 
           <p className="text-sm text-muted-foreground text-center">
