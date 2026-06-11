@@ -2,7 +2,14 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { Trophy, LayoutGrid, Medal, User, LogOut, ShieldCheck } from "lucide-react";
+import {
+  Trophy,
+  LayoutGrid,
+  Medal,
+  User,
+  LogOut,
+  ShieldCheck,
+} from "lucide-react";
 import { toast } from "sonner";
 import { createClient } from "@/lib/supabase/client";
 import type { Profile } from "@/types";
@@ -34,8 +41,11 @@ export function Navbar({ profile }: NavbarProps) {
   async function handleSignOut() {
     const supabase = createClient();
     await supabase.auth.signOut();
-    toast.success("Signed out");
-    router.push("/sign-in");
+    toast.success("Signed out", { duration: 1000 });
+
+    setTimeout(() => {
+      router.push("/sign-in");
+    }, 1500);
     router.refresh();
   }
 
@@ -63,7 +73,7 @@ export function Navbar({ profile }: NavbarProps) {
                 "flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium transition-colors",
                 pathname === href
                   ? "bg-secondary text-foreground"
-                  : "text-muted-foreground hover:text-foreground hover:bg-secondary/50"
+                  : "text-muted-foreground hover:text-foreground hover:bg-secondary/50",
               )}
             >
               <Icon className="h-4 w-4" />
@@ -98,7 +108,11 @@ export function Navbar({ profile }: NavbarProps) {
                 <span className="font-medium">{profile.username}</span>
                 {profile.favorite_team && (
                   <span className="text-xs text-muted-foreground font-normal flex items-center gap-1">
-                    <img src={getTeamFlagUrl(profile.favorite_team)} alt={profile.favorite_team} className="h-3 w-auto rounded-sm" />
+                    <img
+                      src={getTeamFlagUrl(profile.favorite_team)}
+                      alt={profile.favorite_team}
+                      className="h-3 w-auto rounded-sm"
+                    />
                     {profile.favorite_team}
                   </span>
                 )}

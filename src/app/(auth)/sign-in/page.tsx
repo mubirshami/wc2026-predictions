@@ -7,6 +7,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Loader2 } from "lucide-react";
+import { toast } from "sonner";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -30,6 +31,7 @@ type FormValues = z.infer<typeof schema>;
 export default function SignInPage() {
   const router = useRouter();
   const [serverError, setServerError] = useState<string | null>(null);
+  const [success, setSuccess] = useState(false);
 
   const {
     register,
@@ -50,7 +52,12 @@ export default function SignInPage() {
       return;
     }
 
-    router.push("/");
+    setSuccess(true);
+    toast.success("Welcome back!", { duration: 1750 });
+
+    setTimeout(() => {
+      router.push("/");
+    }, 1000);
     router.refresh();
   }
 
