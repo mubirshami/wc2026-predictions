@@ -8,8 +8,8 @@ import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { PasswordInput } from "@/components/ui/password-input";
 import {
   Card,
   CardContent,
@@ -67,9 +67,8 @@ export default function ResetPasswordPage() {
         <CardContent className="space-y-3 pb-4">
           <div className="space-y-1.5">
             <Label htmlFor="password">New Password</Label>
-            <Input
+            <PasswordInput
               id="password"
-              type="password"
               placeholder="Min. 8 characters"
               autoComplete="new-password"
               aria-invalid={!!errors.password}
@@ -82,9 +81,8 @@ export default function ResetPasswordPage() {
 
           <div className="space-y-1.5">
             <Label htmlFor="confirmPassword">Confirm New Password</Label>
-            <Input
+            <PasswordInput
               id="confirmPassword"
-              type="password"
               placeholder="Repeat your new password"
               autoComplete="new-password"
               aria-invalid={!!errors.confirmPassword}

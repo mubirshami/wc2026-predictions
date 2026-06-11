@@ -11,6 +11,7 @@ import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { PasswordInput } from "@/components/ui/password-input";
 import {
   Card,
   CardContent,
@@ -97,9 +98,8 @@ export default function SignUpPage() {
 
           <div className="space-y-1.5">
             <Label htmlFor="password">Password</Label>
-            <Input
+            <PasswordInput
               id="password"
-              type="password"
               placeholder="Min. 8 characters"
               autoComplete="new-password"
               aria-invalid={!!errors.password}
@@ -112,9 +112,8 @@ export default function SignUpPage() {
 
           <div className="space-y-1.5">
             <Label htmlFor="confirmPassword">Confirm Password</Label>
-            <Input
+            <PasswordInput
               id="confirmPassword"
-              type="password"
               placeholder="Repeat your password"
               autoComplete="new-password"
               aria-invalid={!!errors.confirmPassword}
