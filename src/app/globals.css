@@ -1,0 +1,53 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 222 47% 5%;
+    --foreground: 210 40% 93%;
+    --card: 222 47% 8%;
+    --card-foreground: 210 40% 93%;
+    --popover: 222 47% 8%;
+    --popover-foreground: 210 40% 93%;
+    --primary: 160 84% 39%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 217 33% 14%;
+    --secondary-foreground: 210 40% 93%;
+    --muted: 217 33% 12%;
+    --muted-foreground: 215 20% 58%;
+    --accent: 43 96% 56%;
+    --accent-foreground: 0 0% 8%;
+    --destructive: 0 63% 40%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 217 33% 16%;
+    --input: 217 33% 16%;
+    --ring: 160 84% 39%;
+    --radius: 0.75rem;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+}
+
+/* Live match pulse animation */
+@keyframes live-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+.live-indicator {
+  animation: live-pulse 1.5s ease-in-out infinite;
+}
