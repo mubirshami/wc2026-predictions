@@ -7,7 +7,9 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Loader2 } from "lucide-react";
+import { toast } from "sonner";
 import { createClient } from "@/lib/supabase/client";
+import { checkEmail } from "@/app/actions/auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -40,6 +42,7 @@ type FormValues = z.infer<typeof schema>;
 export default function SignUpPage() {
   const router = useRouter();
   const [serverError, setServerError] = useState<string | null>(null);
+  const emailHintShown = useState(false);
 
   const {
     register,
@@ -86,10 +89,24 @@ export default function SignUpPage() {
             <Input
               id="email"
               type="email"
-              placeholder="you@example.com"
+              placeholder="you@gmail.com"
               autoComplete="email"
               aria-invalid={!!errors.email}
-              {...register("email")}
+              {...register("email", {
+                onBlur: async (e) => {
+                  const val = e.target.value;
+                  if (!val || emailHintShown[0]) return;
+                  emailHintShown[1](true);
+                  const { disposable, noMailbox } = await checkEmail(val);
+                  if (disposable) {
+                    toast.error("Disposable emails aren't allowed. Use a real inbox you own.", { duration: 6000 });
+                  } else if (noMailbox) {
+                    toast.error("This email domain doesn't exist. Double-check your address.", { duration: 6000 });
+                  } else {
+                    toast.warning("Make sure this inbox is real — you'll need access to it to verify your account.", { duration: 5000 });
+                  }
+                },
+              })}
             />
             {errors.email && (
               <p className="text-xs text-destructive">{errors.email.message}</p>
