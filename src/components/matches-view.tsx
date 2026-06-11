@@ -6,6 +6,14 @@ import { MatchCard } from "@/components/match-card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { X } from "lucide-react";
+import { cn } from "@/lib/utils";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import type { MatchWithPrediction } from "@/types";
 
 const HINT_KEY = "scoracle_prediction_hint_dismissed";
@@ -54,6 +62,7 @@ interface MatchesViewProps {
 
 export function MatchesView({ matches: initialMatches }: MatchesViewProps) {
   const [matches, setMatches] = useState(initialMatches);
+  const [selectedGroup, setSelectedGroup] = useState("All");
 
   useEffect(() => {
     const supabase = createClient();
@@ -75,6 +84,24 @@ export function MatchesView({ matches: initialMatches }: MatchesViewProps) {
   const completed = matches.filter((m) => m.status === "completed");
 
   const defaultTab = live.length > 0 ? "live" : "upcoming";
+  const [activeTab, setActiveTab] = useState(defaultTab);
+
+  function getGroups(list: MatchWithPrediction[]) {
+    const seen = new Set<string>();
+    const groups: string[] = [];
+    for (const m of list) {
+      if (m.group_name && !seen.has(m.group_name)) {
+        seen.add(m.group_name);
+        groups.push(m.group_name);
+      }
+    }
+    return groups.sort();
+  }
+
+  function filterByGroup(list: MatchWithPrediction[]) {
+    if (selectedGroup === "All") return list;
+    return list.filter((m) => m.group_name === selectedGroup);
+  }
 
   return (
     <div className="space-y-5 animate-fade-in">
@@ -90,42 +117,106 @@ export function MatchesView({ matches: initialMatches }: MatchesViewProps) {
 
       <PredictionHint />
 
-      <Tabs defaultValue={defaultTab}>
-        <TabsList className="w-full sm:w-auto h-10 p-1 gap-0.5">
-          <TabsTrigger value="live" className="flex-1 sm:flex-none h-8 text-sm gap-1.5">
-            Live
-            {live.length > 0 && (
-              <span className="h-4 min-w-4 rounded-full bg-primary text-primary-foreground text-xs font-bold flex items-center justify-center px-1">
-                {live.length}
-              </span>
-            )}
-          </TabsTrigger>
-          <TabsTrigger value="upcoming" className="flex-1 sm:flex-none h-8 text-sm gap-1.5">
-            Upcoming
-            {upcoming.length > 0 && (
-              <span className="text-xs text-muted-foreground">({upcoming.length})</span>
-            )}
-          </TabsTrigger>
-          <TabsTrigger value="completed" className="flex-1 sm:flex-none h-8 text-sm gap-1.5">
-            Completed
-            {completed.length > 0 && (
-              <span className="text-xs text-muted-foreground">({completed.length})</span>
-            )}
-          </TabsTrigger>
-        </TabsList>
+      <Tabs defaultValue={defaultTab} onValueChange={(v) => { setSelectedGroup("All"); setActiveTab(v); }}>
+        {/* Tabs row — with dropdown on right for sm+ */}
+        <div className="flex items-center justify-between gap-3">
+          <TabsList className="w-full sm:w-auto h-10 p-1 gap-0.5">
+            <TabsTrigger value="live" className="flex-1 sm:flex-none h-8 text-sm gap-1.5">
+              Live
+              {live.length > 0 && (
+                <span className="h-4 min-w-4 rounded-full bg-primary text-primary-foreground text-xs font-bold flex items-center justify-center px-1">
+                  {live.length}
+                </span>
+              )}
+            </TabsTrigger>
+            <TabsTrigger value="upcoming" className="flex-1 sm:flex-none h-8 text-sm gap-1.5">
+              Upcoming
+              {upcoming.length > 0 && (
+                <span className="text-xs text-muted-foreground">({upcoming.length})</span>
+              )}
+            </TabsTrigger>
+            <TabsTrigger value="completed" className="flex-1 sm:flex-none h-8 text-sm gap-1.5">
+              Completed
+              {completed.length > 0 && (
+                <span className="text-xs text-muted-foreground">({completed.length})</span>
+              )}
+            </TabsTrigger>
+          </TabsList>
+
+          {/* Desktop group dropdown */}
+          {(() => {
+            const groups = getGroups(activeTab === "live" ? live : activeTab === "completed" ? completed : upcoming);
+            if (groups.length < 2) return null;
+            return (
+              <div className="hidden sm:block shrink-0">
+                <Select value={selectedGroup} onValueChange={setSelectedGroup}>
+                  <SelectTrigger className="h-9 w-36 text-sm">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent className="max-h-44">
+                    <SelectItem value="All">All Groups</SelectItem>
+                    {groups.map((g) => (
+                      <SelectItem key={g} value={g}>Group {g}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            );
+          })()}
+        </div>
+
+        {/* Mobile group pills */}
+        <div className="sm:hidden mt-3">
+          <GroupFilter
+            groups={getGroups(activeTab === "live" ? live : activeTab === "completed" ? completed : upcoming)}
+            selected={selectedGroup}
+            onChange={setSelectedGroup}
+          />
+        </div>
 
         <TabsContent value="live" className="mt-4">
-          <MatchGrid matches={live} emptyMessage="No live matches right now" />
+          <MatchGrid matches={filterByGroup(live)} emptyMessage="No live matches right now" />
         </TabsContent>
 
         <TabsContent value="upcoming" className="mt-4">
-          <MatchGridGrouped matches={upcoming} emptyMessage="No upcoming matches scheduled" />
+          <MatchGridGrouped matches={filterByGroup(upcoming)} emptyMessage="No upcoming matches scheduled" />
         </TabsContent>
 
         <TabsContent value="completed" className="mt-4">
-          <MatchGridGrouped matches={completed} emptyMessage="No completed matches yet" reverse />
+          <MatchGridGrouped matches={filterByGroup(completed)} emptyMessage="No completed matches yet" reverse />
         </TabsContent>
       </Tabs>
+    </div>
+  );
+}
+
+function GroupFilter({
+  groups,
+  selected,
+  onChange,
+}: {
+  groups: string[];
+  selected: string;
+  onChange: (g: string) => void;
+}) {
+  if (groups.length < 2) return null;
+  const all = ["All", ...groups];
+  return (
+    <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
+      {all.map((g) => (
+        <button
+          key={g}
+          onClick={() => onChange(g)}
+          className={cn(
+            "shrink-0 rounded-full px-3.5 py-1.5 text-xs font-semibold transition-colors",
+            selected === g
+              ? "bg-primary text-primary-foreground"
+              : "bg-muted/60 text-muted-foreground hover:bg-muted hover:text-foreground"
+          )}
+        >
+          {g === "All" ? "All" : `Group ${g}`}
+        </button>
+      ))}
     </div>
   );
 }
