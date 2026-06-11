@@ -5,7 +5,44 @@ import { createClient } from "@/lib/supabase/client";
 import { MatchCard } from "@/components/match-card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { X } from "lucide-react";
 import type { MatchWithPrediction } from "@/types";
+
+const HINT_KEY = "scoracle_prediction_hint_dismissed";
+
+function PredictionHint() {
+  const [visible, setVisible] = useState(false);
+
+  useEffect(() => {
+    if (!localStorage.getItem(HINT_KEY)) setVisible(true);
+  }, []);
+
+  if (!visible) return null;
+
+  function dismiss() {
+    localStorage.setItem(HINT_KEY, "1");
+    setVisible(false);
+  }
+
+  return (
+    <div className="flex items-start justify-between gap-3 rounded-xl border border-primary/20 bg-primary/5 px-4 py-3">
+      <div className="flex items-start gap-2.5">
+        <span className="text-base shrink-0 mt-0.5">⚽</span>
+        <p className="text-sm text-muted-foreground leading-relaxed">
+          <span className="font-semibold text-foreground">How to predict:</span>{" "}
+          Tap a team (or Draw) on any upcoming match to cast your vote. You can change it anytime up to <span className="font-medium text-foreground">15 minutes before kickoff</span> — after that it's locked.
+        </p>
+      </div>
+      <button
+        onClick={dismiss}
+        className="shrink-0 text-muted-foreground hover:text-foreground transition-colors mt-0.5"
+        aria-label="Dismiss"
+      >
+        <X className="h-4 w-4" />
+      </button>
+    </div>
+  );
+}
 
 interface MatchesViewProps {
   matches: MatchWithPrediction[];
@@ -46,6 +83,8 @@ export function MatchesView({ matches: initialMatches }: MatchesViewProps) {
           </span>
         )}
       </div>
+
+      <PredictionHint />
 
       <Tabs defaultValue={defaultTab}>
         <TabsList className="w-full sm:w-auto h-10 p-1 gap-0.5">
