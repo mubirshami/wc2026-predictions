@@ -29,10 +29,9 @@ export async function savePrediction(
     return { success: false, error: "Match not found" };
   }
 
-  // Enforce: predictions only open on match day (UTC date)
-  const matchDay = match.kickoff_at.slice(0, 10);
-  const today = new Date().toISOString().slice(0, 10);
-  if (matchDay > today) {
+  // Enforce: predictions open 24 hours before kickoff
+  const openAt = new Date(match.kickoff_at).getTime() - 24 * 60 * 60 * 1000;
+  if (Date.now() < openAt) {
     return { success: false, error: "Predictions for this match are not open yet" };
   }
 

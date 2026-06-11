@@ -3,6 +3,7 @@ import { createClient } from "@supabase/supabase-js";
 import {
   fetchLiveAndRecentMatches,
   mapFDStatus,
+  mapFDScore,
   mapFDWinner,
 } from "@/lib/football-data";
 
@@ -33,10 +34,11 @@ export async function GET(request: Request) {
       const newStatus = mapFDStatus(match.status);
       const newWinner = mapFDWinner(match);
 
+      const score = mapFDScore(match);
       const updatePayload: Record<string, unknown> = {
         status: newStatus,
-        home_score: match.score.fullTime.home,
-        away_score: match.score.fullTime.away,
+        home_score: score.home,
+        away_score: score.away,
         result_source: "api",
       };
 
