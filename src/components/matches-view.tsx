@@ -28,10 +28,14 @@ function PredictionHint() {
     <div className="flex items-start justify-between gap-3 rounded-xl border border-primary/20 bg-primary/5 px-4 py-3">
       <div className="flex items-start gap-2.5">
         <span className="text-base shrink-0 mt-0.5">⚽</span>
-        <p className="text-sm text-muted-foreground leading-relaxed">
-          <span className="font-semibold text-foreground">How to predict:</span>{" "}
-          Tap a team (or Draw) on any upcoming match to cast your vote. You can change it anytime up to <span className="font-medium text-foreground">15 minutes before kickoff</span> — after that it's locked.
-        </p>
+        <div className="space-y-1.5">
+          <p className="text-sm font-semibold text-foreground">How to predict</p>
+          <ul className="space-y-1 text-sm text-muted-foreground">
+            <li>• Tap the <span className="text-foreground font-medium">team name or flag</span> on any match card to cast your vote — group matches also have a <span className="text-foreground font-medium">Draw</span> option</li>
+            <li>• Predictions <span className="text-foreground font-medium">open 24 hours before kickoff</span> — cards show the exact time they unlock</li>
+            <li>• You can <span className="text-foreground font-medium">change your pick freely</span> until <span className="text-foreground font-medium">15 minutes before kickoff</span>, then it locks</li>
+          </ul>
+        </div>
       </div>
       <button
         onClick={dismiss}
