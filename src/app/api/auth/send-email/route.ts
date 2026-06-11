@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { createHmac, timingSafeEqual } from "crypto";
+import { Webhook } from "standardwebhooks";
 import { Resend } from "resend";
 import {
   confirmSignupHtml,
@@ -22,37 +22,19 @@ interface EmailPayload {
   };
 }
 
-// Supabase auth hooks sign the body with HMAC-SHA256.
-// Secret format from dashboard: "v1,whsec_<base64>"
-async function verifyHookSignature(rawBody: string, signatureHeader: string | null): Promise<boolean> {
-  const secret = process.env.SEND_EMAIL_HOOK_SECRET;
-  if (!secret) return true; // no secret configured — allow all
-
-  if (!signatureHeader) return false;
-
-  // Strip the "v1,whsec_" prefix and base64-decode the key
-  const keyBase64 = secret.replace(/^v\d+,whsec_/, "");
-  const keyBytes = Buffer.from(keyBase64, "base64");
-
-  // Signature header format: "v1=<hex>"
-  const expectedHex = signatureHeader.replace(/^v\d+=/, "");
-  const computed = createHmac("sha256", keyBytes).update(rawBody).digest("hex");
-
-  try {
-    return timingSafeEqual(Buffer.from(computed, "hex"), Buffer.from(expectedHex, "hex"));
-  } catch {
-    return false;
-  }
-}
-
 export async function POST(request: Request) {
   const rawBody = await request.text();
+  const headers = Object.fromEntries(request.headers);
 
-  // Verify Supabase HMAC signature
-  const signature = request.headers.get("x-supabase-signature");
-  const valid = await verifyHookSignature(rawBody, signature);
-  if (!valid) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  // Verify Supabase StandardWebhooks signature
+  const secret = process.env.SEND_EMAIL_HOOK_SECRET;
+  if (secret) {
+    try {
+      const wh = new Webhook(secret);
+      wh.verify(rawBody, headers);
+    } catch {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
   }
 
   try {
