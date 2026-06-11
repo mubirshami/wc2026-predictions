@@ -40,9 +40,12 @@ export function isMatchLocked(kickoffAt: string): boolean {
 }
 
 export function isMatchDayOpen(kickoffAt: string): boolean {
-  const matchDay = kickoffAt.slice(0, 10); // YYYY-MM-DD UTC
-  const today = new Date().toISOString().slice(0, 10);
-  return matchDay <= today;
+  const openAt = new Date(kickoffAt).getTime() - 24 * 60 * 60 * 1000;
+  return Date.now() >= openAt;
+}
+
+export function getPredictionOpenTime(kickoffAt: string): Date {
+  return new Date(new Date(kickoffAt).getTime() - 24 * 60 * 60 * 1000);
 }
 
 export function getLockTimeDisplay(kickoffAt: string): string {

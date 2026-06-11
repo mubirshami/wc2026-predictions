@@ -3,7 +3,7 @@
 import { useState, useTransition } from "react";
 import { toast } from "sonner";
 import { Lock, CheckCircle2, XCircle, CalendarClock } from "lucide-react";
-import { cn, isMatchLocked, isMatchDayOpen, getLockTimeDisplay, getStageLabel, formatMatchDate, formatMatchTime } from "@/lib/utils";
+import { cn, isMatchLocked, isMatchDayOpen, getPredictionOpenTime, getLockTimeDisplay, getStageLabel, formatMatchDate, formatMatchTime } from "@/lib/utils";
 import { getTeamFlagUrl } from "@/lib/constants/teams";
 import { savePrediction } from "@/app/actions/predictions";
 import type { MatchWithPrediction, PredictionOption } from "@/types";
@@ -23,6 +23,9 @@ export function MatchCard({ match }: MatchCardProps) {
   const currentPrediction = optimisticPrediction ?? match.user_prediction?.predicted_winner ?? null;
   const pointsAwarded = match.user_prediction?.points_awarded;
   const isGroup = match.stage === "group";
+  const isLive = match.status === "live";
+  const isCompleted = match.status === "completed";
+  const isUpcoming = match.status === "upcoming";
 
   const homeFlagUrl = getTeamFlagUrl(match.home_team);
   const awayFlagUrl = getTeamFlagUrl(match.away_team);
@@ -40,82 +43,105 @@ export function MatchCard({ match }: MatchCardProps) {
     });
   }
 
-  const isLive = match.status === "live";
-  const isCompleted = match.status === "completed";
-  const isUpcoming = match.status === "upcoming";
-
   return (
     <div className={cn(
-      "rounded-2xl border bg-card overflow-hidden transition-all duration-200 flex flex-col h-full",
+      "group relative rounded-2xl border overflow-hidden flex flex-col h-full transition-all duration-200",
       isLive
-        ? "border-emerald-500/40 shadow-lg shadow-emerald-500/10"
-        : "border-border/60 hover:border-border"
+        ? "border-primary/40 bg-card shadow-lg shadow-primary/8"
+        : "border-border/60 bg-card hover:border-border hover:shadow-md hover:shadow-black/10"
     )}>
-      {/* Card header */}
+      {/* Live glow strip */}
+      {isLive && (
+        <div className="absolute inset-x-0 top-0 h-0.5 bg-gradient-to-r from-transparent via-primary to-transparent" />
+      )}
+
+      {/* Header */}
       <div className={cn(
-        "px-4 py-2.5 flex items-center justify-between text-xs border-b border-border/40",
-        isLive ? "bg-emerald-500/10" : "bg-muted/30"
+        "px-4 py-2.5 flex items-center justify-between text-xs border-b border-border/30",
+        isLive ? "bg-primary/8" : "bg-muted/20"
       )}>
         <div className="flex items-center gap-2">
           {isLive ? (
-            <span className="flex items-center gap-1.5 font-semibold text-emerald-400">
-              <span className="live-indicator">●</span> LIVE
+            <span className="flex items-center gap-1.5 font-bold text-primary text-[11px] uppercase tracking-wide">
+              <span className="live-indicator h-1.5 w-1.5 rounded-full bg-primary" />
+              Live
             </span>
           ) : isCompleted ? (
-            <span className="font-semibold text-muted-foreground">Full Time</span>
+            <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Full Time</span>
           ) : (
-            <span className="text-muted-foreground font-medium">
+            <span className="text-xs font-medium text-muted-foreground">
               {getStageLabel(match.stage)}
               {match.group_name ? ` · Group ${match.group_name}` : ""}
             </span>
           )}
         </div>
-        <div className="text-right text-muted-foreground">
+        <span className="text-xs text-muted-foreground tabular-nums">
           {formatMatchDate(match.kickoff_at)} · {formatMatchTime(match.kickoff_at)}
-        </div>
+        </span>
       </div>
 
       {/* Teams */}
-      <div className="px-5 py-5 flex-1">
-        <div className="flex items-center gap-3">
-          {/* Home team */}
-          <div className="flex-1 flex flex-col items-center gap-2 min-w-0">
-            <TeamFlag url={homeFlagUrl} name={match.home_team} />
-            <span className="text-sm font-bold text-foreground text-center leading-tight">
+      <div className="px-4 py-5 flex-1">
+        <div className="flex items-center gap-2">
+
+          {/* Home */}
+          <div className={cn(
+            "flex-1 flex flex-col items-center gap-2.5 min-w-0 transition-opacity duration-200",
+            isCompleted && match.winner === "away" && "opacity-40"
+          )}>
+            <div className={cn(
+              "relative rounded-xl overflow-hidden shadow-sm ring-2 ring-transparent transition-all duration-200",
+              isCompleted && match.winner === "home" && "ring-primary/50 shadow-primary/20 shadow-md",
+              currentPrediction === "home" && isUpcoming && "ring-primary/60"
+            )}>
+              <TeamFlag url={homeFlagUrl} name={match.home_team} />
+            </div>
+            <span className="text-xs font-semibold text-center leading-tight line-clamp-2">
               {match.home_team}
             </span>
           </div>
 
-          {/* Score / vs */}
-          <div className="shrink-0 flex flex-col items-center gap-1 px-2">
+          {/* Score / VS */}
+          <div className="shrink-0 flex flex-col items-center gap-1 px-1">
             {isUpcoming ? (
-              <span className="text-xl font-light text-muted-foreground/60">vs</span>
+              <div className="flex flex-col items-center gap-0.5">
+                <span className="text-lg font-light text-muted-foreground tracking-widest">vs</span>
+              </div>
             ) : (
-              <div className="flex items-center gap-1.5">
+              <div className="flex items-center gap-1">
                 <span className={cn(
-                  "text-3xl font-black tabular-nums w-8 text-center",
-                  isCompleted && match.winner === "home" ? "text-emerald-400" : "text-foreground"
+                  "text-3xl font-black tabular-nums w-8 text-center leading-none",
+                  isCompleted && match.winner === "home" ? "text-primary" : "text-foreground"
                 )}>
                   {match.home_score ?? 0}
                 </span>
-                <span className="text-lg text-muted-foreground/50 font-light">–</span>
+                <span className="text-muted-foreground font-light text-xl">—</span>
                 <span className={cn(
-                  "text-3xl font-black tabular-nums w-8 text-center",
-                  isCompleted && match.winner === "away" ? "text-emerald-400" : "text-foreground"
+                  "text-3xl font-black tabular-nums w-8 text-center leading-none",
+                  isCompleted && match.winner === "away" ? "text-primary" : "text-foreground"
                 )}>
                   {match.away_score ?? 0}
                 </span>
               </div>
             )}
             {isCompleted && match.winner === "draw" && (
-              <span className="text-[10px] text-emerald-400 font-semibold">DRAW</span>
+              <span className="text-[10px] font-bold text-accent tracking-wide uppercase">Draw</span>
             )}
           </div>
 
-          {/* Away team */}
-          <div className="flex-1 flex flex-col items-center gap-2 min-w-0">
-            <TeamFlag url={awayFlagUrl} name={match.away_team} />
-            <span className="text-sm font-bold text-foreground text-center leading-tight">
+          {/* Away */}
+          <div className={cn(
+            "flex-1 flex flex-col items-center gap-2.5 min-w-0 transition-opacity duration-200",
+            isCompleted && match.winner === "home" && "opacity-40"
+          )}>
+            <div className={cn(
+              "relative rounded-xl overflow-hidden shadow-sm ring-2 ring-transparent transition-all duration-200",
+              isCompleted && match.winner === "away" && "ring-primary/50 shadow-primary/20 shadow-md",
+              currentPrediction === "away" && isUpcoming && "ring-primary/60"
+            )}>
+              <TeamFlag url={awayFlagUrl} name={match.away_team} />
+            </div>
+            <span className="text-xs font-semibold text-center leading-tight line-clamp-2">
               {match.away_team}
             </span>
           </div>
@@ -123,23 +149,28 @@ export function MatchCard({ match }: MatchCardProps) {
       </div>
 
       {/* Prediction section */}
-      <div className="px-4 pb-4 space-y-2">
+      <div className="px-3 pb-3">
+
+        {/* Future day — not open yet */}
         {isUpcoming && !dayOpen && (
-          <div className="flex items-center justify-center gap-2 py-1.5 text-xs text-muted-foreground">
-            <CalendarClock className="h-3 w-3 shrink-0" />
-            <span>Opens {formatMatchDate(match.kickoff_at)}</span>
+          <div className="flex items-center justify-center gap-1.5 py-2 text-xs text-muted-foreground bg-muted/40 rounded-xl">
+            <CalendarClock className="h-3.5 w-3.5 shrink-0" />
+            <span>
+              Opens {formatMatchDate(getPredictionOpenTime(match.kickoff_at).toISOString())} · {formatMatchTime(getPredictionOpenTime(match.kickoff_at).toISOString())}
+            </span>
           </div>
         )}
 
+        {/* Today — predict buttons */}
         {isUpcoming && dayOpen && !locked && (
-          <>
+          <div className="space-y-2">
             <div className="grid gap-1.5" style={{ gridTemplateColumns: isGroup ? "1fr auto 1fr" : "1fr 1fr" }}>
               <PredictButton
                 selected={currentPrediction === "home"}
                 onClick={() => handlePredict("home")}
                 disabled={pending}
               >
-                {homeFlagUrl && <img src={homeFlagUrl} alt={match.home_team} className="w-5 h-auto rounded-sm shrink-0" />}
+                {homeFlagUrl && <img src={homeFlagUrl} alt={match.home_team} className="w-5 h-3.5 object-cover rounded-sm shrink-0" />}
                 <span className="text-xs font-semibold truncate">{shortName(match.home_team)}</span>
               </PredictButton>
 
@@ -159,56 +190,59 @@ export function MatchCard({ match }: MatchCardProps) {
                 onClick={() => handlePredict("away")}
                 disabled={pending}
               >
-                {awayFlagUrl && <img src={awayFlagUrl} alt={match.away_team} className="w-5 h-auto rounded-sm shrink-0" />}
+                {awayFlagUrl && <img src={awayFlagUrl} alt={match.away_team} className="w-5 h-3.5 object-cover rounded-sm shrink-0" />}
                 <span className="text-xs font-semibold truncate">{shortName(match.away_team)}</span>
               </PredictButton>
             </div>
-            <p className="text-[10px] text-muted-foreground text-center">
-              {currentPrediction ? "✓ Prediction saved · tap to change" : getLockTimeDisplay(match.kickoff_at)}
+            <p className="text-xs text-muted-foreground text-center">
+              {currentPrediction ? "Tap to change prediction" : getLockTimeDisplay(match.kickoff_at)}
             </p>
-          </>
+          </div>
         )}
 
+        {/* Locked */}
         {isUpcoming && dayOpen && locked && (
-          <div className="flex items-center justify-center gap-2 py-1 text-xs text-muted-foreground">
+          <div className="flex items-center justify-center gap-1.5 py-2 text-xs text-muted-foreground bg-muted/30 rounded-xl">
             <Lock className="h-3 w-3 shrink-0" />
             <span>
-              {currentPrediction
-                ? `Locked · ${predictionText(currentPrediction, match)}`
-                : "Locked · no prediction made"}
+              {currentPrediction ? predictionText(currentPrediction, match) : "No prediction made"}
             </span>
           </div>
         )}
 
+        {/* Live */}
         {isLive && (
-          <div className="flex items-center justify-center gap-2 py-1 text-xs text-muted-foreground">
-            <Lock className="h-3 w-3 shrink-0" />
-            <span>{currentPrediction ? predictionText(currentPrediction, match) : "No prediction made"}</span>
+          <div className="flex items-center justify-center gap-1.5 py-2 text-xs bg-primary/8 rounded-xl">
+            <Lock className="h-3 w-3 shrink-0 text-primary" />
+            <span className="text-muted-foreground">
+              {currentPrediction ? predictionText(currentPrediction, match) : "No prediction made"}
+            </span>
           </div>
         )}
 
+        {/* Completed */}
         {isCompleted && (
-          <div className="flex items-center justify-between py-1">
+          <div className="flex items-center justify-between px-1">
             <div className="flex items-center gap-1.5 text-xs">
               {currentPrediction ? (
                 <>
-                  {pointsAwarded != null ? (
+                  {pointsAwarded != null && (
                     pointsAwarded > 0
-                      ? <CheckCircle2 className="h-3.5 w-3.5 text-emerald-400 shrink-0" />
-                      : <XCircle className="h-3.5 w-3.5 text-red-400/70 shrink-0" />
-                  ) : null}
+                      ? <CheckCircle2 className="h-3.5 w-3.5 text-primary shrink-0" />
+                      : <XCircle className="h-3.5 w-3.5 text-destructive/60 shrink-0" />
+                  )}
                   <span className="text-muted-foreground">{predictionText(currentPrediction, match)}</span>
                 </>
               ) : (
-                <span className="text-muted-foreground/60">No prediction</span>
+                <span className="text-muted-foreground/50">No prediction</span>
               )}
             </div>
             {pointsAwarded != null && (
               <span className={cn(
-                "text-sm font-bold",
-                pointsAwarded > 0 ? "text-emerald-400" : "text-muted-foreground/50"
+                "text-sm font-bold tabular-nums",
+                pointsAwarded > 0 ? "text-primary" : "text-muted-foreground/40"
               )}>
-                {pointsAwarded > 0 ? `+${pointsAwarded} pts` : "0 pts"}
+                {pointsAwarded > 0 ? `+${pointsAwarded}` : "0"} pts
               </span>
             )}
           </div>
@@ -221,7 +255,7 @@ export function MatchCard({ match }: MatchCardProps) {
 function TeamFlag({ url, name }: { url: string; name: string }) {
   if (!url) {
     return (
-      <div className="w-16 h-11 rounded-md bg-muted/50 border border-border/40 flex items-center justify-center text-xs text-muted-foreground font-bold shrink-0">
+      <div className="w-16 h-11 bg-muted/50 flex items-center justify-center text-xs text-muted-foreground font-bold">
         {name.slice(0, 3).toUpperCase()}
       </div>
     );
@@ -230,7 +264,7 @@ function TeamFlag({ url, name }: { url: string; name: string }) {
     <img
       src={url}
       alt={name}
-      className="w-16 h-11 object-cover rounded-md shadow-sm border border-black/10"
+      className="w-16 h-11 object-cover"
     />
   );
 }
@@ -254,10 +288,10 @@ function PredictButton({
       onClick={onClick}
       disabled={disabled}
       className={cn(
-        "flex items-center justify-center gap-1.5 py-2.5 px-2 rounded-xl border text-sm transition-all duration-150",
+        "flex items-center justify-center gap-1.5 py-2 px-2 rounded-xl border text-sm transition-all duration-150 active:scale-95",
         selected
-          ? "bg-primary/15 border-primary text-primary font-semibold shadow-sm"
-          : "border-border/50 text-muted-foreground hover:border-primary/40 hover:text-foreground hover:bg-muted/50",
+          ? "bg-primary/15 border-primary text-primary font-semibold"
+          : "border-border/50 text-muted-foreground hover:border-primary/30 hover:text-foreground hover:bg-muted/50",
         disabled && "opacity-50 cursor-not-allowed",
         className
       )}
