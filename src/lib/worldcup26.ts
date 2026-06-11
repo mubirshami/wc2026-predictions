@@ -39,7 +39,7 @@ export interface WC26Game {
 
 // Parses PostgreSQL array literal: {"J. Pulisic 23'","R. Weah 67'"} → ["J. Pulisic 23'", "R. Weah 67'"]
 function parseScorers(raw: string): string[] {
-  if (!raw || raw === "{}") return [];
+  if (!raw || raw === "{}" || raw === "null") return [];
   const inner = raw.replace(/^\{|\}$/g, "");
   if (!inner) return [];
   const results: string[] = [];
@@ -94,5 +94,7 @@ export async function fetchAllGames(): Promise<WC26Game[]> {
   });
   if (!res.ok) throw new Error(`worldcup26.ir ${res.status}: ${await res.text()}`);
   const data = await res.json();
-  return (data.games ?? []).map(transform);
+  return (data.games ?? [])
+    .filter((g: WC26RawGame) => g.home_team_name_en && g.away_team_name_en)
+    .map(transform);
 }
