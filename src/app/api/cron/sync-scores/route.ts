@@ -24,7 +24,7 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: "FOOTBALL_DATA_KEY not configured" }, { status: 503 });
   }
 
-  let updated = 0;
+  const synced: object[] = [];
   const errors: string[] = [];
 
   try {
@@ -33,8 +33,8 @@ export async function GET(request: Request) {
     for (const match of matches) {
       const newStatus = mapFDStatus(match.status);
       const newWinner = mapFDWinner(match);
-
       const score = mapFDScore(match);
+
       const updatePayload: Record<string, unknown> = {
         status: newStatus,
         home_score: score.home,
@@ -53,16 +53,24 @@ export async function GET(request: Request) {
         .eq("api_football_id", match.id);
 
       if (error) {
-        errors.push(`Match ${match.id}: ${error.message}`);
+        errors.push(`[${match.homeTeam.name} vs ${match.awayTeam.name}] ${error.message}`);
       } else {
-        updated++;
+        synced.push({
+          match: `${match.homeTeam.name} vs ${match.awayTeam.name}`,
+          status: newStatus,
+          score: score.home !== null ? `${score.home} - ${score.away}` : "not started",
+          winner: newWinner ?? "pending",
+          kickoff: match.utcDate,
+        });
       }
     }
 
     return NextResponse.json({
       success: true,
+      syncedAt: new Date().toISOString(),
       processed: matches.length,
-      updated,
+      updated: synced.length,
+      matches: synced,
       errors: errors.length > 0 ? errors : undefined,
     });
   } catch (err) {
