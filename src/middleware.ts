@@ -35,8 +35,11 @@ export async function middleware(request: NextRequest) {
     pathname.startsWith("/sign-in") ||
     pathname.startsWith("/sign-up") ||
     pathname.startsWith("/forgot-password") ||
-    pathname.startsWith("/reset-password") ||
     pathname.startsWith("/check-email");
+
+  // reset-password is intentionally excluded from isAuthPage:
+  // after clicking the reset link, the user has an active session and needs
+  // to reach this page to set their new password.
 
   const isPublicApiRoute =
     pathname.startsWith("/api/cron") ||
