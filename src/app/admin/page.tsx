@@ -2,6 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import { AdminMatchesTable } from "@/components/admin/admin-matches-table";
 import { SyncFixturesButton } from "@/components/admin/sync-fixtures-button";
+import { SyncScoresButton } from "@/components/admin/sync-scores-button";
 
 export const revalidate = 0;
 
@@ -36,7 +37,10 @@ export default async function AdminPage() {
             Manage match scores and trigger score calculations
           </p>
         </div>
-        <SyncFixturesButton />
+        <div className="flex items-center gap-2">
+          <SyncScoresButton />
+          <SyncFixturesButton />
+        </div>
       </div>
       <AdminMatchesTable matches={matches ?? []} />
     </div>
