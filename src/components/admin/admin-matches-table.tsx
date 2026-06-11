@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import { toast } from "sonner";
 import { Pencil, Loader2 } from "lucide-react";
 import { formatMatchDate, getStageLabel } from "@/lib/utils";
@@ -113,11 +114,11 @@ export function AdminMatchesTable({ matches: initialMatches }: AdminMatchesTable
               <TableRow key={match.id}>
                 <TableCell>
                   <div className="flex items-center gap-1.5 text-sm font-medium">
-                    <img src={getTeamFlagUrl(match.home_team)} alt={match.home_team} className="h-4 w-auto rounded-sm" />
+                    <Image src={getTeamFlagUrl(match.home_team)} alt={match.home_team} width={24} height={16} className="h-4 w-auto rounded-sm" />
                     <span>{getTeamCode(match.home_team)}</span>
                     <span className="text-muted-foreground">vs</span>
                     <span>{getTeamCode(match.away_team)}</span>
-                    <img src={getTeamFlagUrl(match.away_team)} alt={match.away_team} className="h-4 w-auto rounded-sm" />
+                    <Image src={getTeamFlagUrl(match.away_team)} alt={match.away_team} width={24} height={16} className="h-4 w-auto rounded-sm" />
                   </div>
                 </TableCell>
                 <TableCell className="hidden md:table-cell text-sm text-muted-foreground">

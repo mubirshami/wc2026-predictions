@@ -1,3 +1,4 @@
+import Image from "next/image";
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import { getTeamFlagUrl } from "@/lib/constants/teams";
@@ -63,9 +64,11 @@ export default async function ProfilePage() {
       <div className="flex items-start gap-4">
         <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-secondary overflow-hidden shrink-0">
           {profile.favorite_team ? (
-            <img
+            <Image
               src={getTeamFlagUrl(profile.favorite_team)}
               alt={profile.favorite_team}
+              width={64}
+              height={64}
               className="w-full h-full object-cover"
             />
           ) : (

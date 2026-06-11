@@ -1,3 +1,4 @@
+import Image from "next/image";
 import { createClient } from "@/lib/supabase/server";
 import { getTeamFlagUrl } from "@/lib/constants/teams";
 import { cn } from "@/lib/utils";
@@ -150,9 +151,11 @@ export default async function StandingsPage() {
                         )}>
                           {i + 1}
                         </span>
-                        <img
+                        <Image
                           src={getTeamFlagUrl(row.team)}
                           alt={row.team}
+                          width={24}
+                          height={16}
                           className="h-4 w-6 object-cover rounded-sm shrink-0"
                         />
                         <span className="text-sm font-medium truncate">{row.team}</span>

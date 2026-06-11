@@ -6,6 +6,7 @@ import {
   mapFDStatus,
   mapFDStage,
   mapFDGroup,
+  mapFDScore,
   mapFDWinner,
 } from "@/lib/football-data";
 
@@ -53,8 +54,8 @@ export async function POST() {
     venue: m.venue,
     city: null,
     status: mapFDStatus(m.status),
-    home_score: m.score.fullTime.home,
-    away_score: m.score.fullTime.away,
+    home_score: mapFDScore(m).home,
+    away_score: mapFDScore(m).away,
     winner: mapFDWinner(m),
     result_source: "api" as const,
   }));

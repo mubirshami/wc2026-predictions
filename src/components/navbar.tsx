@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
 import { useTheme } from "next-themes";
 import { Trophy, LayoutGrid, Medal, BarChart2, User, LogOut, ShieldCheck, Sun, Moon } from "lucide-react";
@@ -108,9 +109,11 @@ export function Navbar({ profile }: NavbarProps) {
                 {profile.username}
               </span>
               {profile.favorite_team && (
-                <img
+                <Image
                   src={getTeamFlagUrl(profile.favorite_team)}
                   alt={profile.favorite_team}
+                  width={24}
+                  height={16}
                   className="h-4 w-6 object-cover rounded-sm hidden sm:block"
                 />
               )}
@@ -120,9 +123,11 @@ export function Navbar({ profile }: NavbarProps) {
               <DropdownMenuLabel>
                 <div className="flex items-center gap-2.5">
                   {profile.favorite_team && (
-                    <img
+                    <Image
                       src={getTeamFlagUrl(profile.favorite_team)}
                       alt={profile.favorite_team}
+                      width={44}
+                      height={32}
                       className="h-8 w-11 object-cover rounded-md shrink-0"
                     />
                   )}

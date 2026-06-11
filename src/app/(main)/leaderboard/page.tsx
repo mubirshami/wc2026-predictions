@@ -1,3 +1,4 @@
+import Image from "next/image";
 import { createClient } from "@/lib/supabase/server";
 import { getTeamFlagUrl } from "@/lib/constants/teams";
 import { Users, Trophy, Target, Percent } from "lucide-react";
@@ -43,9 +44,11 @@ export default async function LeaderboardPage() {
                   {MEDAL[currentUserEntry.rank] ?? `#${currentUserEntry.rank}`}
                 </div>
                 {currentUserEntry.favorite_team && (
-                  <img
+                  <Image
                     src={getTeamFlagUrl(currentUserEntry.favorite_team)}
                     alt={currentUserEntry.favorite_team}
+                    width={36}
+                    height={24}
                     className="h-6 w-9 object-cover rounded-md shrink-0"
                   />
                 )}
@@ -117,9 +120,11 @@ export default async function LeaderboardPage() {
                   {/* Player */}
                   <div className="flex items-center gap-2.5 min-w-0">
                     {entry.favorite_team ? (
-                      <img
+                      <Image
                         src={getTeamFlagUrl(entry.favorite_team)}
                         alt={entry.favorite_team}
+                        width={28}
+                        height={20}
                         className="h-5 w-7 object-cover rounded-sm shrink-0"
                       />
                     ) : (

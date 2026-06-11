@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import Image from "next/image";
 import { toast } from "sonner";
 import { Lock, CheckCircle2, XCircle, CalendarClock } from "lucide-react";
 import { cn, isMatchLocked, isMatchDayOpen, getPredictionOpenTime, getLockTimeDisplay, getStageLabel, formatMatchDate, formatMatchTime } from "@/lib/utils";
@@ -170,7 +171,7 @@ export function MatchCard({ match }: MatchCardProps) {
                 onClick={() => handlePredict("home")}
                 disabled={pending}
               >
-                {homeFlagUrl && <img src={homeFlagUrl} alt={match.home_team} className="w-5 h-3.5 object-cover rounded-sm shrink-0" />}
+                {homeFlagUrl && <Image src={homeFlagUrl} alt={match.home_team} width={20} height={14} className="w-5 h-3.5 object-cover rounded-sm shrink-0" />}
                 <span className="text-sm font-semibold truncate">{shortName(match.home_team)}</span>
               </PredictButton>
 
@@ -190,7 +191,7 @@ export function MatchCard({ match }: MatchCardProps) {
                 onClick={() => handlePredict("away")}
                 disabled={pending}
               >
-                {awayFlagUrl && <img src={awayFlagUrl} alt={match.away_team} className="w-5 h-3.5 object-cover rounded-sm shrink-0" />}
+                {awayFlagUrl && <Image src={awayFlagUrl} alt={match.away_team} width={20} height={14} className="w-5 h-3.5 object-cover rounded-sm shrink-0" />}
                 <span className="text-sm font-semibold truncate">{shortName(match.away_team)}</span>
               </PredictButton>
             </div>
@@ -261,9 +262,11 @@ function TeamFlag({ url, name }: { url: string; name: string }) {
     );
   }
   return (
-    <img
+    <Image
       src={url}
       alt={name}
+      width={64}
+      height={44}
       className="w-16 h-11 object-cover"
     />
   );

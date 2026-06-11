@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import { Check, ChevronsUpDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { TEAM_NAMES, getTeamFlagUrl } from "@/lib/constants/teams";
@@ -41,9 +42,11 @@ export function TeamCombobox({ value, onChange, invalid }: TeamComboboxProps) {
         >
           {value ? (
             <span className="flex items-center gap-2">
-              <img
+              <Image
                 src={getTeamFlagUrl(value)}
                 alt={value}
+                width={24}
+                height={16}
                 className="h-4 w-6 object-cover rounded-sm"
               />
               <span>{value}</span>
@@ -70,9 +73,11 @@ export function TeamCombobox({ value, onChange, invalid }: TeamComboboxProps) {
                     setOpen(false);
                   }}
                 >
-                  <img
+                  <Image
                     src={getTeamFlagUrl(team)}
                     alt={team}
+                    width={24}
+                    height={16}
                     className="h-4 w-6 object-cover rounded-sm shrink-0"
                   />
                   <span>{team}</span>
