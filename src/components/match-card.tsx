@@ -4,7 +4,7 @@ import { useState, useTransition } from "react";
 import Image from "next/image";
 import { toast } from "sonner";
 import { Lock, CheckCircle2, XCircle, CalendarClock, Loader2 } from "lucide-react";
-import { cn, isMatchLocked, isMatchDayOpen, getPredictionOpenTime, getLockTimeDisplay, getStageLabel, formatMatchDate, formatMatchTime } from "@/lib/utils";
+import { cn, isMatchLocked, isMatchDayOpen, getPredictionOpenTime, getStageLabel, formatMatchDate, formatMatchTime, getVotingClosesIn } from "@/lib/utils";
 import { getTeamFlagUrl } from "@/lib/constants/teams";
 import { savePrediction } from "@/app/actions/predictions";
 import type { MatchWithPrediction, PredictionOption } from "@/types";
@@ -88,10 +88,18 @@ export function MatchCard({ match }: MatchCardProps) {
           ) : isCompleted ? (
             <span className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">Full Time</span>
           ) : (
-            <span className="text-sm font-medium text-muted-foreground">
-              {getStageLabel(match.stage)}
-              {match.group_name ? ` · Group ${match.group_name}` : ""}
-            </span>
+            <div className="flex items-center gap-2">
+              <span className="text-sm font-medium text-muted-foreground">
+                {getStageLabel(match.stage)}
+                {match.group_name ? ` · Group ${match.group_name}` : ""}
+              </span>
+              {dayOpen && !locked && (
+                <span className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-wide text-emerald-500">
+                  <span className="live-indicator h-1.5 w-1.5 rounded-full bg-emerald-500" />
+                  Vote Open
+                </span>
+              )}
+            </div>
           )}
         </div>
         <span className="text-sm text-muted-foreground tabular-nums">
@@ -216,7 +224,7 @@ export function MatchCard({ match }: MatchCardProps) {
               </PredictButton>
             </div>
             <p className="text-sm text-muted-foreground text-center">
-              {currentPrediction ? "Tap to change prediction" : getLockTimeDisplay(match.kickoff_at)}
+              {currentPrediction ? `Tap to change · ${getVotingClosesIn(match.kickoff_at)}` : getVotingClosesIn(match.kickoff_at)}
             </p>
           </div>
         )}

@@ -55,6 +55,17 @@ export function getLockTimeDisplay(kickoffAt: string): string {
   return "Locking soon";
 }
 
+export function getVotingClosesIn(kickoffAt: string): string {
+  const lockTime = new Date(kickoffAt).getTime() - 15 * 60 * 1000;
+  const diff = Math.max(0, lockTime - Date.now());
+  const totalMinutes = Math.floor(diff / 60000);
+  const hours = Math.floor(totalMinutes / 60);
+  const minutes = totalMinutes % 60;
+  if (hours > 0) return `Voting closes in ${hours}h ${minutes}m`;
+  if (minutes > 0) return `Voting closes in ${minutes}m`;
+  return "Voting closes soon";
+}
+
 export const stageLabelMap: Record<MatchStage, string> = {
   group: "Group Stage",
   round_of_32: "Round of 32",
