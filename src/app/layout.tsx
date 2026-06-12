@@ -5,6 +5,7 @@ import { Analytics } from "@vercel/analytics/next";
 import { siteConfig } from "@/lib/config";
 import { ThemeProvider } from "@/components/theme-provider";
 import { InstallPrompt } from "@/components/install-prompt";
+import { NotificationPrompt } from "@/components/notification-prompt";
 import "./globals.css";
 
 const inter = Inter({ subsets: ["latin"] });
@@ -47,6 +48,7 @@ export default function RootLayout({
         <ThemeProvider>
           {children}
           <InstallPrompt />
+          <NotificationPrompt />
           <Toaster position="top-right" richColors closeButton />
           <Analytics />
         </ThemeProvider>

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { fetchAllGames } from "@/lib/worldcup26";
+import { sendToUser, sendToAll } from "@/lib/notifications";
 
 export async function GET(request: Request) {
   const authHeader = request.headers.get("authorization");
@@ -19,7 +20,6 @@ export async function GET(request: Request) {
   const errors: string[] = [];
 
   try {
-    // Fetch all games from worldcup26.ir and build a lookup by team names
     const games = await fetchAllGames();
     const gameMap = new Map<string, (typeof games)[0]>();
     for (const game of games) {
@@ -27,19 +27,20 @@ export async function GET(request: Request) {
       gameMap.set(key, game);
     }
 
-    // Fetch all DB matches that still need updating
     const { data: dbMatches, error: dbError } = await supabase
       .from("matches")
-      .select("id, home_team, away_team, status, home_score, away_score")
+      .select("id, home_team, away_team, status, home_score, away_score, kickoff_at, winner, reminder_sent, result_notification_sent")
       .in("status", ["upcoming", "live"]);
 
     if (dbError) throw new Error(dbError.message);
+
+    const now = Date.now();
 
     for (const dbMatch of dbMatches ?? []) {
       const key = `${dbMatch.home_team.toLowerCase()}|${dbMatch.away_team.toLowerCase()}`;
       const game = gameMap.get(key);
 
-      if (!game) continue; // not in worldcup26 data yet — skip
+      if (!game) continue;
 
       const updatePayload: Record<string, unknown> = {
         status: game.status,
@@ -49,22 +50,78 @@ export async function GET(request: Request) {
         away_scorers: game.away_scorers,
       };
 
-      // Only update scores when the API provides them
       if (game.home_score !== null) {
         updatePayload.home_score = game.home_score;
         updatePayload.away_score = game.away_score;
       }
 
-      // Set winner when completed
+      let justCompleted = false;
       if (game.status === "completed" && game.home_score !== null && game.away_score !== null) {
-        if (game.home_score > game.away_score) {
-          updatePayload.winner = "home";
-        } else if (game.away_score > game.home_score) {
-          updatePayload.winner = "away";
-        } else {
-          updatePayload.winner = "draw";
-        }
+        if (game.home_score > game.away_score) updatePayload.winner = "home";
+        else if (game.away_score > game.home_score) updatePayload.winner = "away";
+        else updatePayload.winner = "draw";
         updatePayload.scores_calculated = false;
+        justCompleted = dbMatch.status !== "completed";
+      }
+
+      // ── Voting reminder: send 55–65 min before kickoff, once per match ──
+      if (!dbMatch.reminder_sent && game.status === "upcoming") {
+        const kickoff = new Date(dbMatch.kickoff_at).getTime();
+        const minsUntil = (kickoff - now) / 60000;
+        if (minsUntil >= 55 && minsUntil <= 65) {
+          // Find users who haven't predicted this match yet
+          const { data: unpredicted } = await supabase
+            .from("profiles")
+            .select("id")
+            .not("id", "in",
+              supabase
+                .from("predictions")
+                .select("user_id")
+                .eq("match_id", dbMatch.id)
+            );
+
+          if (unpredicted?.length) {
+            await Promise.allSettled(
+              unpredicted.map((p) =>
+                sendToUser(supabase, p.id, {
+                  title: "⚽ Voting closes in 1 hour",
+                  body: `${dbMatch.home_team} vs ${dbMatch.away_team} — cast your prediction before it locks!`,
+                  url: "/",
+                  tag: `reminder-${dbMatch.id}`,
+                })
+              )
+            );
+          }
+          updatePayload.reminder_sent = true;
+        }
+      }
+
+      // ── Result notification: send once when match just completed ──
+      if (justCompleted && !dbMatch.result_notification_sent) {
+        const homeScore = game.home_score!;
+        const awayScore = game.away_score!;
+        const winner = homeScore > awayScore ? "home" : awayScore > homeScore ? "away" : "draw";
+
+        // Get all predictions for this match
+        const { data: predictions } = await supabase
+          .from("predictions")
+          .select("user_id, predicted_winner")
+          .eq("match_id", dbMatch.id);
+
+        if (predictions?.length) {
+          await Promise.allSettled(
+            predictions.map((pred) => {
+              const correct = pred.predicted_winner === winner;
+              return sendToUser(supabase, pred.user_id, {
+                title: correct ? "✅ Correct prediction! +5 pts" : "❌ Unlucky this time",
+                body: `${dbMatch.home_team} ${homeScore}–${awayScore} ${dbMatch.away_team}`,
+                url: "/",
+                tag: `result-${dbMatch.id}`,
+              });
+            })
+          );
+        }
+        updatePayload.result_notification_sent = true;
       }
 
       const { error } = await supabase

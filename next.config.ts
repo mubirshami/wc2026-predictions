@@ -19,4 +19,5 @@ export default withPWA({
   // Prevent SW from caching the manifest — Chrome fetches it directly and
   // getting cached HTML instead of JSON causes a "Syntax error" parse failure
   publicExcludes: ["!manifest.webmanifest", "!favicon.ico"],
+  customWorkerSrc: "worker",
 })(nextConfig);
