@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { fetchAllGames } from "@/lib/worldcup26";
-import { sendToUser, sendToAll } from "@/lib/notifications";
+import { sendToUser } from "@/lib/notifications";
 
 export async function GET(request: Request) {
   const authHeader = request.headers.get("authorization");
