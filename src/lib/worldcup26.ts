@@ -1,5 +1,13 @@
 const BASE_URL = "https://worldcup26.ir";
 
+// worldcup26.ir uses different names than our DB for some teams
+const TEAM_NAME_MAP: Record<string, string> = {
+  "Czech Republic": "Czechia",
+  "Bosnia and Herzegovina": "Bosnia-Herzegovina",
+  "Democratic Republic of the Congo": "Congo DR",
+  "Cape Verde": "Cape Verde Islands",
+};
+
 function getHeaders(): Record<string, string> {
   const headers: Record<string, string> = {};
   if (process.env.WORLDCUP_API_TOKEN) {
@@ -75,8 +83,8 @@ function transform(raw: WC26RawGame): WC26Game {
   const status = mapStatus(raw);
   return {
     id: raw.id,
-    home_team: raw.home_team_name_en,
-    away_team: raw.away_team_name_en,
+    home_team: TEAM_NAME_MAP[raw.home_team_name_en] ?? raw.home_team_name_en,
+    away_team: TEAM_NAME_MAP[raw.away_team_name_en] ?? raw.away_team_name_en,
     // Only set scores once the match has started
     home_score: status !== "upcoming" ? parseScore(raw.home_score) : null,
     away_score: status !== "upcoming" ? parseScore(raw.away_score) : null,
