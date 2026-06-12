@@ -1,12 +1,20 @@
 import { NextResponse } from "next/server";
-import { Resend } from "resend";
+import nodemailer from "nodemailer";
 import {
   confirmSignupHtml,
   resetPasswordHtml,
   magicLinkHtml,
 } from "@/lib/emails/templates";
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+const transporter = nodemailer.createTransport({
+  host: "smtp.gmail.com",
+  port: 587,
+  secure: false,
+  auth: {
+    user: process.env.GMAIL_USER,
+    pass: process.env.GMAIL_APP_PASSWORD,
+  },
+});
 
 interface EmailPayload {
   user: { id: string; email: string };
@@ -29,15 +37,9 @@ export async function POST(request: Request) {
     const { user, email_data } = payload;
     const { token_hash, email_action_type, redirect_to } = email_data;
 
-    // Point confirmation links directly to our own callback with token_hash.
-    // Supabase's /auth/v1/verify redirects back with ?code= which requires the PKCE
-    // code-verifier stored in the original signup browser — users clicking from email
-    // webviews (Gmail mobile, Outlook) don't have it and land on the login page instead.
-    // verifyOtp(token_hash) is server-side and needs no client state at all.
     const appBase = redirect_to.replace(/\/auth\/callback.*$/, "");
     const confirmationUrl = `${appBase}/auth/callback?token_hash=${token_hash}&type=${email_action_type}`;
 
-    // Pick template + subject
     let subject: string;
     let html: string;
 
@@ -52,14 +54,12 @@ export async function POST(request: Request) {
       html = confirmSignupHtml(confirmationUrl);
     }
 
-    const from = process.env.RESEND_FROM_EMAIL ?? "Scoracle <onboarding@resend.dev>";
-
-    const { error } = await resend.emails.send({ from, to: user.email, subject, html });
-
-    if (error) {
-      console.error("[send-email] Resend error:", error);
-      return NextResponse.json({ error: error.message }, { status: 500 });
-    }
+    await transporter.sendMail({
+      from: `Scoracle <${process.env.GMAIL_USER}>`,
+      to: user.email,
+      subject,
+      html,
+    });
 
     return NextResponse.json({ success: true });
   } catch (err) {
