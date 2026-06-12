@@ -129,7 +129,6 @@ BEGIN
   UPDATE predictions
   SET
     points_awarded = CASE
-      WHEN predicted_winner = v_winner AND v_winner = 'draw' THEN 2
       WHEN predicted_winner = v_winner THEN 5
       ELSE 0
     END,
