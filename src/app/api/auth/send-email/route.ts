@@ -1,5 +1,4 @@
 import { NextResponse } from "next/server";
-import { Webhook } from "standardwebhooks";
 import { Resend } from "resend";
 import {
   confirmSignupHtml,
@@ -24,18 +23,6 @@ interface EmailPayload {
 
 export async function POST(request: Request) {
   const rawBody = await request.text();
-  const headers = Object.fromEntries(request.headers);
-
-  // Verify Supabase StandardWebhooks signature
-  const secret = process.env.SEND_EMAIL_HOOK_SECRET;
-  if (secret) {
-    try {
-      const wh = new Webhook(secret);
-      wh.verify(rawBody, headers);
-    } catch {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-  }
 
   try {
     const payload: EmailPayload = JSON.parse(rawBody);
