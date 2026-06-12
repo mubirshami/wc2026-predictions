@@ -88,18 +88,10 @@ export function MatchCard({ match }: MatchCardProps) {
           ) : isCompleted ? (
             <span className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">Full Time</span>
           ) : (
-            <div className="flex items-center gap-2">
-              <span className="text-sm font-medium text-muted-foreground">
-                {getStageLabel(match.stage)}
-                {match.group_name ? ` · Group ${match.group_name}` : ""}
-              </span>
-              {dayOpen && !locked && (
-                <span className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-wide text-emerald-500">
-                  <span className="live-indicator h-1.5 w-1.5 rounded-full bg-emerald-500" />
-                  Vote Open
-                </span>
-              )}
-            </div>
+            <span className="text-sm font-medium text-muted-foreground">
+              {getStageLabel(match.stage)}
+              {match.group_name ? ` · Group ${match.group_name}` : ""}
+            </span>
           )}
         </div>
         <span className="text-sm text-muted-foreground tabular-nums">
