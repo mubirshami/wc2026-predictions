@@ -40,11 +40,15 @@ export async function POST(request: Request) {
   try {
     const payload: EmailPayload = JSON.parse(rawBody);
     const { user, email_data } = payload;
-    const { token_hash, email_action_type, redirect_to, site_url } = email_data;
+    const { token_hash, email_action_type, redirect_to } = email_data;
 
-    // Build the Supabase verification URL
-    const base = site_url.replace(/\/$/, "");
-    const confirmationUrl = `${base}/auth/v1/verify?token=${token_hash}&type=${email_action_type}&redirect_to=${encodeURIComponent(redirect_to)}`;
+    // Point confirmation links directly to our own callback with token_hash.
+    // Supabase's /auth/v1/verify redirects back with ?code= which requires the PKCE
+    // code-verifier stored in the original signup browser — users clicking from email
+    // webviews (Gmail mobile, Outlook) don't have it and land on the login page instead.
+    // verifyOtp(token_hash) is server-side and needs no client state at all.
+    const appBase = redirect_to.replace(/\/auth\/callback.*$/, "");
+    const confirmationUrl = `${appBase}/auth/callback?token_hash=${token_hash}&type=${email_action_type}`;
 
     // Pick template + subject
     let subject: string;
