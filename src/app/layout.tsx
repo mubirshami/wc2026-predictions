@@ -1,12 +1,17 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
 import { Toaster } from "sonner";
 import { Analytics } from "@vercel/analytics/next";
 import { siteConfig } from "@/lib/config";
 import { ThemeProvider } from "@/components/theme-provider";
+import { InstallPrompt } from "@/components/install-prompt";
 import "./globals.css";
 
 const inter = Inter({ subsets: ["latin"] });
+
+export const viewport: Viewport = {
+  themeColor: "#10b981",
+};
 
 export const metadata: Metadata = {
   title: {
@@ -14,8 +19,15 @@ export const metadata: Metadata = {
     template: `%s · ${siteConfig.name}`,
   },
   description: siteConfig.description,
+  manifest: "/manifest.webmanifest",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "black-translucent",
+    title: "Scoracle",
+  },
   icons: {
     icon: "/icon.png",
+    apple: "/icon.png",
   },
   openGraph: {
     title: siteConfig.fullName,
@@ -34,6 +46,7 @@ export default function RootLayout({
       <body className={inter.className} suppressHydrationWarning>
         <ThemeProvider>
           {children}
+          <InstallPrompt />
           <Toaster position="top-right" richColors closeButton />
           <Analytics />
         </ThemeProvider>
