@@ -6,6 +6,7 @@ import { siteConfig } from "@/lib/config";
 import { ThemeProvider } from "@/components/theme-provider";
 import { InstallPrompt } from "@/components/install-prompt";
 import { NotificationPrompt } from "@/components/notification-prompt";
+import { SwUpdater } from "@/components/sw-updater";
 import "./globals.css";
 
 const inter = Inter({ subsets: ["latin"] });
@@ -49,6 +50,7 @@ export default function RootLayout({
           {children}
           <InstallPrompt />
           <NotificationPrompt />
+          <SwUpdater />
           <Toaster position="top-right" richColors closeButton />
           <Analytics />
         </ThemeProvider>

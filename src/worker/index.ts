@@ -3,6 +3,10 @@ export type {};
 
 declare const self: ServiceWorkerGlobalScope;
 
+self.addEventListener("install", () => {
+  self.skipWaiting();
+});
+
 self.addEventListener("push", (event: PushEvent) => {
   if (!event.data) return;
 
