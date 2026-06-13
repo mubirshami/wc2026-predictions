@@ -1,10 +1,10 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState, useTransition, useEffect } from "react";
 import Image from "next/image";
 import { toast } from "sonner";
-import { Lock, CheckCircle2, XCircle, CalendarClock, Loader2 } from "lucide-react";
-import { cn, isMatchLocked, isMatchDayOpen, getPredictionOpenTime, getStageLabel, formatMatchDate, formatMatchTime, getVotingClosesIn } from "@/lib/utils";
+import { Lock, CheckCircle2, XCircle, CalendarClock, Loader2, Clock } from "lucide-react";
+import { cn, isMatchLocked, isMatchDayOpen, getPredictionOpenTime, getStageLabel, formatMatchDate, formatMatchTime, getLocksIn } from "@/lib/utils";
 import { getTeamFlagUrl } from "@/lib/constants/teams";
 import { savePrediction } from "@/app/actions/predictions";
 import type { MatchWithPrediction, PredictionOption } from "@/types";
@@ -36,6 +36,17 @@ export function MatchCard({ match }: MatchCardProps) {
   const isLive = match.status === "live";
   const isCompleted = match.status === "completed";
   const isUpcoming = match.status === "upcoming";
+
+  const isCorrect = !!currentPrediction && !!match.winner && currentPrediction === match.winner;
+  const isWrong = !!currentPrediction && !!match.winner && currentPrediction !== match.winner;
+
+  // Tick every 30s to keep lock countdown fresh
+  const [, forceUpdate] = useState(0);
+  useEffect(() => {
+    if (!isUpcoming || !dayOpen || locked) return;
+    const timer = setInterval(() => forceUpdate((n) => n + 1), 30_000);
+    return () => clearInterval(timer);
+  }, [isUpcoming, dayOpen, locked]);
 
   const homeFlagUrl = getTeamFlagUrl(match.home_team);
   const awayFlagUrl = getTeamFlagUrl(match.away_team);
@@ -215,8 +226,9 @@ export function MatchCard({ match }: MatchCardProps) {
                 <span className="text-sm font-semibold truncate">{shortName(match.away_team)}</span>
               </PredictButton>
             </div>
-            <p className="text-sm text-muted-foreground text-center">
-              {currentPrediction ? `Tap to change · ${getVotingClosesIn(match.kickoff_at)}` : getVotingClosesIn(match.kickoff_at)}
+            <p className="text-sm text-center flex items-center justify-center gap-1 text-amber-400/90 font-medium">
+              <Clock className="h-3 w-3 shrink-0" />
+              {currentPrediction ? `Tap to change · ${getLocksIn(match.kickoff_at)}` : getLocksIn(match.kickoff_at)}
             </p>
           </div>
         )}
@@ -243,25 +255,28 @@ export function MatchCard({ match }: MatchCardProps) {
 
         {/* Completed */}
         {isCompleted && (
-          <div className="flex items-center justify-between px-1">
-            <div className="flex items-center gap-1.5 text-sm">
-              {currentPrediction ? (
-                <>
-                  {pointsAwarded != null && (
-                    pointsAwarded > 0
-                      ? <CheckCircle2 className="h-4 w-4 text-primary shrink-0" />
-                      : <XCircle className="h-4 w-4 text-destructive/60 shrink-0" />
-                  )}
-                  <span className="text-muted-foreground">{predictionText(currentPrediction, match)}</span>
-                </>
-              ) : (
-                <span className="text-muted-foreground/50">No prediction</span>
-              )}
-            </div>
-            {pointsAwarded != null && (
+          <div className={cn(
+            "flex items-center justify-between px-3 py-2.5 rounded-xl",
+            isCorrect ? "bg-emerald-500/10" : isWrong ? "bg-destructive/8" : "bg-muted/30"
+          )}>
+            <div className="flex items-center gap-1.5">
+              {isCorrect && <CheckCircle2 className="h-4 w-4 text-emerald-400 shrink-0" />}
+              {isWrong && <XCircle className="h-4 w-4 text-destructive/50 shrink-0" />}
               <span className={cn(
-                "text-base font-bold tabular-nums",
-                pointsAwarded > 0 ? "text-primary" : "text-muted-foreground/40"
+                "text-sm font-medium",
+                isCorrect ? "text-emerald-400" : isWrong ? "text-muted-foreground" : "text-muted-foreground/50"
+              )}>
+                {isCorrect
+                  ? "Correct prediction"
+                  : isWrong
+                  ? predictionText(currentPrediction!, match)
+                  : "No prediction"}
+              </span>
+            </div>
+            {(isCorrect || isWrong) && pointsAwarded != null && (
+              <span className={cn(
+                "text-sm font-bold tabular-nums",
+                pointsAwarded > 0 ? "text-emerald-400" : "text-muted-foreground/40"
               )}>
                 {pointsAwarded > 0 ? `+${pointsAwarded}` : "0"} pts
               </span>

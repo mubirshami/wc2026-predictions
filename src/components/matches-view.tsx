@@ -66,6 +66,13 @@ export function MatchesView({ matches: initialMatches }: MatchesViewProps) {
   const [selectedGroup, setSelectedGroup] = useState("All");
   const router = useRouter();
 
+  const live = matches.filter((m) => m.status === "live");
+  const upcoming = matches.filter((m) => m.status === "upcoming");
+  const completed = matches.filter((m) => m.status === "completed");
+
+  const defaultTab = live.length > 0 ? "live" : "upcoming";
+  const [activeTab, setActiveTab] = useState(defaultTab);
+
   // Realtime subscription with reconnection on error
   useEffect(() => {
     const supabase = createClient();
@@ -91,20 +98,23 @@ export function MatchesView({ matches: initialMatches }: MatchesViewProps) {
     return () => { supabase.removeChannel(channel); };
   }, []);
 
-  // Polling fallback — refreshes server component data in case Realtime misses an update
+  // Auto-switch to Live tab when a match goes live
+  useEffect(() => {
+    if (matches.some((m) => m.status === "live")) setActiveTab("live");
+  }, [matches]);
+
+  // Polling fallback — poll aggressively near kickoff and during live matches
   useEffect(() => {
     const hasLive = matches.some((m) => m.status === "live");
-    const interval = hasLive ? 30_000 : 60_000;
+    const hasNearKickoff = matches.some((m) => {
+      if (m.status !== "upcoming") return false;
+      const diff = new Date(m.kickoff_at).getTime() - Date.now();
+      return diff >= 0 && diff < 10 * 60 * 1000;
+    });
+    const interval = hasLive || hasNearKickoff ? 20_000 : 60_000;
     const timer = setInterval(() => router.refresh(), interval);
     return () => clearInterval(timer);
   }, [matches, router]);
-
-  const live = matches.filter((m) => m.status === "live");
-  const upcoming = matches.filter((m) => m.status === "upcoming");
-  const completed = matches.filter((m) => m.status === "completed");
-
-  const defaultTab = live.length > 0 ? "live" : "upcoming";
-  const [activeTab, setActiveTab] = useState(defaultTab);
 
   function getGroups(list: MatchWithPrediction[]) {
     const seen = new Set<string>();
