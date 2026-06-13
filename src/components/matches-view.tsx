@@ -1,13 +1,13 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { MatchCard } from "@/components/match-card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { X } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { isMatchDayOpen, isMatchLocked } from "@/lib/utils";
 import {
   Select,
   SelectContent,
@@ -64,14 +64,14 @@ interface MatchesViewProps {
 export function MatchesView({ matches: initialMatches }: MatchesViewProps) {
   const [matches, setMatches] = useState(initialMatches);
   const [selectedGroup, setSelectedGroup] = useState("All");
+  const [predFilter, setPredFilter] = useState<"all" | "open">("all");
   const router = useRouter();
 
   const live = matches.filter((m) => m.status === "live");
   const upcoming = matches.filter((m) => m.status === "upcoming");
   const completed = matches.filter((m) => m.status === "completed");
 
-  const defaultTab = live.length > 0 ? "live" : "upcoming";
-  const [activeTab, setActiveTab] = useState(defaultTab);
+  const [activeTab, setActiveTab] = useState("upcoming");
 
   // Realtime subscription with reconnection on error
   useEffect(() => {
@@ -98,10 +98,12 @@ export function MatchesView({ matches: initialMatches }: MatchesViewProps) {
     return () => { supabase.removeChannel(channel); };
   }, []);
 
-  // Auto-switch to Live tab when a match goes live
+  // Auto-switch to Live tab only when a new match transitions to live
+  const prevLiveCount = useRef(live.length);
   useEffect(() => {
-    if (matches.some((m) => m.status === "live")) setActiveTab("live");
-  }, [matches]);
+    if (live.length > prevLiveCount.current) setActiveTab("live");
+    prevLiveCount.current = live.length;
+  }, [live.length]);
 
   // Polling fallback — poll aggressively near kickoff and during live matches
   useEffect(() => {
@@ -147,7 +149,7 @@ export function MatchesView({ matches: initialMatches }: MatchesViewProps) {
 
       <PredictionHint />
 
-      <Tabs defaultValue={defaultTab} onValueChange={(v) => { setSelectedGroup("All"); setActiveTab(v); }}>
+      <Tabs value={activeTab} onValueChange={(v) => { setSelectedGroup("All"); setActiveTab(v); }}>
         {/* Tabs row — with dropdown on right for sm+ */}
         <div className="flex items-center justify-between gap-3">
           <TabsList className="w-full sm:w-auto h-10 p-1 gap-0.5">
@@ -173,43 +175,86 @@ export function MatchesView({ matches: initialMatches }: MatchesViewProps) {
             </TabsTrigger>
           </TabsList>
 
-          {/* Desktop group dropdown */}
+          {/* Dropdowns — same row on sm+ */}
           {(() => {
             const groups = getGroups(activeTab === "live" ? live : activeTab === "completed" ? completed : upcoming);
-            if (groups.length < 2) return null;
+            const showGroup = groups.length >= 2;
+            const showPred = activeTab === "upcoming";
+            if (!showGroup && !showPred) return null;
             return (
-              <div className="hidden sm:block shrink-0">
-                <Select value={selectedGroup} onValueChange={setSelectedGroup}>
-                  <SelectTrigger className="h-9 w-36 text-sm">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent className="max-h-44">
-                    <SelectItem value="All">All Groups</SelectItem>
-                    {groups.map((g) => (
-                      <SelectItem key={g} value={g}>Group {g}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+              <div className="hidden sm:flex items-center gap-2 shrink-0">
+                {showGroup && (
+                  <Select value={selectedGroup} onValueChange={setSelectedGroup}>
+                    <SelectTrigger className="h-9 w-36 text-sm">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent className="max-h-44">
+                      <SelectItem value="All">All Groups</SelectItem>
+                      {groups.map((g) => <SelectItem key={g} value={g}>Group {g}</SelectItem>)}
+                    </SelectContent>
+                  </Select>
+                )}
+                {showPred && (
+                  <Select value={predFilter} onValueChange={(v) => setPredFilter(v as "all" | "open")}>
+                    <SelectTrigger className="h-9 w-44 text-sm">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Matches</SelectItem>
+                      <SelectItem value="open">Predictions Open</SelectItem>
+                    </SelectContent>
+                  </Select>
+                )}
               </div>
             );
           })()}
         </div>
 
-        {/* Mobile group pills */}
-        <div className="sm:hidden mt-3">
-          <GroupFilter
-            groups={getGroups(activeTab === "live" ? live : activeTab === "completed" ? completed : upcoming)}
-            selected={selectedGroup}
-            onChange={setSelectedGroup}
-          />
-        </div>
+        {/* Mobile filter row */}
+        {(() => {
+          const groups = getGroups(upcoming);
+          const showGroup = groups.length >= 2;
+          const showPred = activeTab === "upcoming";
+          if (!showGroup && !showPred) return null;
+          return (
+            <div className="flex sm:hidden gap-2 mt-3">
+              {showGroup && (
+                <Select value={selectedGroup} onValueChange={setSelectedGroup}>
+                  <SelectTrigger className="h-9 flex-1 text-sm">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent className="max-h-44">
+                    <SelectItem value="All">All Groups</SelectItem>
+                    {groups.map((g) => <SelectItem key={g} value={g}>Group {g}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              )}
+              {showPred && (
+                <Select value={predFilter} onValueChange={(v) => setPredFilter(v as "all" | "open")}>
+                  <SelectTrigger className="h-9 flex-1 text-sm">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Matches</SelectItem>
+                    <SelectItem value="open">Predictions Open</SelectItem>
+                  </SelectContent>
+                </Select>
+              )}
+            </div>
+          );
+        })()}
 
         <TabsContent value="live" className="mt-4">
           <MatchGrid matches={filterByGroup(live)} emptyMessage="No live matches right now" />
         </TabsContent>
 
         <TabsContent value="upcoming" className="mt-4">
-          <MatchGridGrouped matches={filterByGroup(upcoming)} emptyMessage="No upcoming matches scheduled" />
+          <MatchGridGrouped
+            matches={filterByGroup(upcoming).filter((m) =>
+              predFilter === "open" ? isMatchDayOpen(m.kickoff_at) && !isMatchLocked(m.kickoff_at) : true
+            )}
+            emptyMessage="No upcoming matches scheduled"
+          />
         </TabsContent>
 
         <TabsContent value="completed" className="mt-4">
@@ -220,36 +265,6 @@ export function MatchesView({ matches: initialMatches }: MatchesViewProps) {
   );
 }
 
-function GroupFilter({
-  groups,
-  selected,
-  onChange,
-}: {
-  groups: string[];
-  selected: string;
-  onChange: (g: string) => void;
-}) {
-  if (groups.length < 2) return null;
-  const all = ["All", ...groups];
-  return (
-    <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
-      {all.map((g) => (
-        <button
-          key={g}
-          onClick={() => onChange(g)}
-          className={cn(
-            "shrink-0 rounded-full px-3.5 py-1.5 text-xs font-semibold transition-colors",
-            selected === g
-              ? "bg-primary text-primary-foreground"
-              : "bg-muted/60 text-muted-foreground hover:bg-muted hover:text-foreground"
-          )}
-        >
-          {g === "All" ? "All" : `Group ${g}`}
-        </button>
-      ))}
-    </div>
-  );
-}
 
 function MatchGrid({ matches, emptyMessage }: { matches: MatchWithPrediction[]; emptyMessage: string }) {
   if (matches.length === 0) return <EmptyState message={emptyMessage} />;
