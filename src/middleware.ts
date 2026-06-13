@@ -37,6 +37,8 @@ export async function middleware(request: NextRequest) {
     pathname.startsWith("/forgot-password") ||
     pathname.startsWith("/check-email");
 
+  const isLandingPage = pathname === "/";
+
   // reset-password is intentionally excluded from isAuthPage:
   // after clicking the reset link, the user has an active session and needs
   // to reach this page to set their new password.
@@ -55,13 +57,13 @@ export async function middleware(request: NextRequest) {
   }
 
   // Unauthenticated user trying to access protected page
-  if (!user && !isAuthPage) {
+  if (!user && !isAuthPage && !isLandingPage) {
     return NextResponse.redirect(new URL("/sign-in", request.url));
   }
 
-  // Authenticated user trying to access auth pages
+  // Authenticated user trying to access auth pages → send to matches
   if (user && isAuthPage) {
-    return NextResponse.redirect(new URL("/", request.url));
+    return NextResponse.redirect(new URL("/matches", request.url));
   }
 
   if (user && !isAuthPage && !isCompleteProfile) {
@@ -78,7 +80,7 @@ export async function middleware(request: NextRequest) {
 
     // Non-admin trying to access admin routes
     if (isAdminRoute && !profile?.is_admin) {
-      return NextResponse.redirect(new URL("/", request.url));
+      return NextResponse.redirect(new URL("/matches", request.url));
     }
   }
 
