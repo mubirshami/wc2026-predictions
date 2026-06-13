@@ -42,8 +42,17 @@ export async function GET(request: Request) {
 
       if (!game) continue;
 
+      const kickoffMs = new Date(dbMatch.kickoff_at).getTime();
+      const hasStarted = kickoffMs <= now;
+
+      // Never trust the API marking a match completed/live before kickoff
+      const safeStatus =
+        !hasStarted && (game.status === "completed" || game.status === "live")
+          ? "upcoming"
+          : game.status;
+
       const updatePayload: Record<string, unknown> = {
-        status: game.status,
+        status: safeStatus,
         result_source: "api",
         live_minute: game.live_minute,
         home_scorers: game.home_scorers,
@@ -56,7 +65,7 @@ export async function GET(request: Request) {
       }
 
       let justCompleted = false;
-      if (game.status === "completed" && game.home_score !== null && game.away_score !== null) {
+      if (game.status === "completed" && game.home_score !== null && game.away_score !== null && hasStarted) {
         if (game.home_score > game.away_score) updatePayload.winner = "home";
         else if (game.away_score > game.home_score) updatePayload.winner = "away";
         else updatePayload.winner = "draw";
@@ -65,9 +74,8 @@ export async function GET(request: Request) {
       }
 
       // ── Voting reminder: send 55–65 min before kickoff, once per match ──
-      if (!dbMatch.reminder_sent && game.status === "upcoming") {
-        const kickoff = new Date(dbMatch.kickoff_at).getTime();
-        const minsUntil = (kickoff - now) / 60000;
+      if (!dbMatch.reminder_sent && safeStatus === "upcoming") {
+        const minsUntil = (kickoffMs - now) / 60000;
         if (minsUntil >= 55 && minsUntil <= 65) {
           // Find users who haven't predicted this match yet
           const { data: unpredicted } = await supabase
