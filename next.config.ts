@@ -12,8 +12,8 @@ const nextConfig: NextConfig = {
 
 export default withPWA({
   dest: "public",
-  cacheOnFrontEndNav: true,
-  aggressiveFrontEndNavCaching: true,
+  cacheOnFrontEndNav: false,
+  aggressiveFrontEndNavCaching: false,
   reloadOnOnline: true,
   disable: process.env.NODE_ENV === "development",
   // Prevent SW from caching the manifest — Chrome fetches it directly and
