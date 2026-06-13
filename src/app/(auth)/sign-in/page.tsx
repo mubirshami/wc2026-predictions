@@ -55,7 +55,7 @@ export default function SignInPage() {
 
     setSuccess(true);
     toast.success("Welcome back!", { duration: 1750 });
-    router.push("/");
+    router.push("/matches");
     router.refresh();
   }
 

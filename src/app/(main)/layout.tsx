@@ -14,7 +14,7 @@ export default async function MainLayout({
     data: { user },
   } = await supabase.auth.getUser();
 
-  if (!user) redirect("/sign-in");
+  if (!user) redirect("/");
 
   const { data: profile } = await supabase
     .from("profiles")

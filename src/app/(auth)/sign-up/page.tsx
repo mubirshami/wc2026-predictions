@@ -97,13 +97,9 @@ export default function SignUpPage() {
                   const val = e.target.value;
                   if (!val || emailHintShown[0]) return;
                   emailHintShown[1](true);
-                  const { disposable, noMailbox } = await checkEmail(val);
+                  const { disposable } = await checkEmail(val);
                   if (disposable) {
                     toast.error("Disposable emails aren't allowed. Use a real inbox you own.", { duration: 6000 });
-                  } else if (noMailbox) {
-                    toast.error("This email domain doesn't exist. Double-check your address.", { duration: 6000 });
-                  } else {
-                    toast.warning("Make sure this inbox is real — you'll need access to it to verify your account.", { duration: 5000 });
                   }
                 },
               })}
