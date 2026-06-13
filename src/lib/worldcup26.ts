@@ -1,36 +1,24 @@
-const BASE_URL = "https://worldcup26.ir";
+const BASE_URL = "https://api.football-data.org/v4";
 
-// worldcup26.ir uses different names than our DB for some teams
-const TEAM_NAME_MAP: Record<string, string> = {
-  "Czech Republic": "Czechia",
-  "Bosnia and Herzegovina": "Bosnia-Herzegovina",
-  "Democratic Republic of the Congo": "Congo DR",
-  "Cape Verde": "Cape Verde Islands",
-};
-
-function getHeaders(): Record<string, string> {
-  const headers: Record<string, string> = {};
-  if (process.env.WORLDCUP_API_TOKEN) {
-    headers["Authorization"] = `Bearer ${process.env.WORLDCUP_API_TOKEN}`;
-  }
-  return headers;
+interface FDTeam {
+  id: number;
+  name: string;
 }
 
-interface WC26RawGame {
-  id: string;
-  home_team_name_en: string;
-  away_team_name_en: string;
-  home_score: string;
-  away_score: string;
-  home_scorers: string;
-  away_scorers: string;
-  group: string | null;
-  matchday: string;
-  local_date: string;
-  stadium_id: string;
-  finished: string;
-  time_elapsed: string;
-  type: string;
+interface FDMatch {
+  id: number;
+  status: string;
+  homeTeam: FDTeam;
+  awayTeam: FDTeam;
+  score: {
+    winner: "HOME_TEAM" | "AWAY_TEAM" | "DRAW" | null;
+    fullTime: { home: number | null; away: number | null };
+  };
+  minute?: number;
+}
+
+interface FDResponse {
+  matches: FDMatch[];
 }
 
 export interface WC26Game {
@@ -45,64 +33,35 @@ export interface WC26Game {
   live_minute: number | null;
 }
 
-// Parses PostgreSQL array literal: {"J. Pulisic 23'","R. Weah 67'"} → ["J. Pulisic 23'", "R. Weah 67'"]
-function parseScorers(raw: string): string[] {
-  if (!raw || raw === "{}" || raw === "null") return [];
-  const inner = raw.replace(/^\{|\}$/g, "");
-  if (!inner) return [];
-  const results: string[] = [];
-  const regex = /"((?:[^"\\]|\\.)*)"/g;
-  let match;
-  while ((match = regex.exec(inner)) !== null) {
-    results.push(match[1].replace(/\\"/g, '"'));
-  }
-  return results;
+function mapStatus(status: string): "upcoming" | "live" | "completed" {
+  if (status === "FINISHED" || status === "AWARDED") return "completed";
+  if (status === "IN_PLAY" || status === "PAUSED") return "live";
+  return "upcoming";
 }
 
-function parseScore(s: string): number | null {
-  if (!s && s !== "0") return null;
-  const n = parseInt(s, 10);
-  return isNaN(n) ? null : n;
-}
-
-function mapStatus(game: WC26RawGame): "upcoming" | "live" | "completed" {
-  if (game.finished === "TRUE") return "completed";
-  const te = (game.time_elapsed ?? "").toLowerCase();
-  if (!te || te === "notstarted") return "upcoming";
-  if (te === "finished") return "completed";
-  // firsthalf | halftime | secondhalf | extratime | penaltyshootout | numeric minute
-  return "live";
-}
-
-function mapMinute(game: WC26RawGame): number | null {
-  const n = parseInt(game.time_elapsed, 10);
-  return isNaN(n) ? null : n;
-}
-
-function transform(raw: WC26RawGame): WC26Game {
-  const status = mapStatus(raw);
+function transform(m: FDMatch): WC26Game {
+  const status = mapStatus(m.status);
   return {
-    id: raw.id,
-    home_team: TEAM_NAME_MAP[raw.home_team_name_en] ?? raw.home_team_name_en,
-    away_team: TEAM_NAME_MAP[raw.away_team_name_en] ?? raw.away_team_name_en,
-    // Only set scores once the match has started
-    home_score: status !== "upcoming" ? parseScore(raw.home_score) : null,
-    away_score: status !== "upcoming" ? parseScore(raw.away_score) : null,
-    home_scorers: parseScorers(raw.home_scorers ?? "{}"),
-    away_scorers: parseScorers(raw.away_scorers ?? "{}"),
+    id: String(m.id),
+    home_team: m.homeTeam.name,
+    away_team: m.awayTeam.name,
+    home_score: status !== "upcoming" ? m.score.fullTime.home : null,
+    away_score: status !== "upcoming" ? m.score.fullTime.away : null,
+    home_scorers: [],
+    away_scorers: [],
     status,
-    live_minute: mapMinute(raw),
+    live_minute: m.minute ?? null,
   };
 }
 
 export async function fetchAllGames(): Promise<WC26Game[]> {
-  const res = await fetch(`${BASE_URL}/get/games`, {
-    headers: getHeaders(),
+  const res = await fetch(`${BASE_URL}/competitions/WC/matches`, {
+    headers: { "X-Auth-Token": process.env.FOOTBALL_DATA_KEY ?? "" },
     next: { revalidate: 0 },
   });
-  if (!res.ok) throw new Error(`worldcup26.ir ${res.status}: ${await res.text()}`);
-  const data = await res.json();
-  return (data.games ?? [])
-    .filter((g: WC26RawGame) => g.home_team_name_en && g.away_team_name_en)
+  if (!res.ok) throw new Error(`football-data.org ${res.status}: ${await res.text()}`);
+  const data: FDResponse = await res.json();
+  return (data.matches ?? [])
+    .filter((m) => m.homeTeam.name && m.awayTeam.name)
     .map(transform);
 }
