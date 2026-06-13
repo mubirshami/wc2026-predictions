@@ -4,7 +4,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
 import { useTheme } from "next-themes";
-import { Trophy, LayoutGrid, Medal, BarChart2, User, LogOut, ShieldCheck, Sun, Moon } from "lucide-react";
+import { LayoutGrid, Medal, BarChart2, User, LogOut, ShieldCheck, Sun, Moon } from "lucide-react";
 import { toast } from "sonner";
 import { createClient } from "@/lib/supabase/client";
 import type { Profile } from "@/types";
@@ -21,7 +21,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 
 const NAV_LINKS = [
-  { href: "/", label: "Matches", icon: LayoutGrid },
+  { href: "/matches", label: "Matches", icon: LayoutGrid },
   { href: "/leaderboard", label: "Leaderboard", icon: Medal },
   { href: "/standings", label: "Standings", icon: BarChart2 },
 ];
@@ -52,10 +52,8 @@ export function Navbar({ profile }: NavbarProps) {
       <div className="mx-auto flex h-14 max-w-7xl w-full items-center justify-between px-4 sm:px-6 lg:px-8">
 
         {/* Logo */}
-        <Link href="/" className="flex items-center gap-2.5 font-bold group">
-          <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-primary transition-transform group-hover:scale-105">
-            <Trophy className="h-4 w-4 text-primary-foreground" />
-          </div>
+        <Link href="/matches" className="flex items-center gap-2.5 font-bold group">
+          <Image src="/official-wc-logo.png" alt="WC 2026" width={36} height={36} className="rounded-sm transition-transform group-hover:scale-105" />
           <span className="hidden sm:block text-sm font-semibold tracking-tight">WC 2026 Predictions</span>
           <span className="block sm:hidden text-sm font-semibold">WC 2026</span>
         </Link>
