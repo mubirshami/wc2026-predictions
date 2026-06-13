@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import type { LeaderboardEntry } from "@/types";
+import { NotificationToggle } from "@/components/notification-toggle";
 
 export const revalidate = 60;
 
@@ -116,6 +117,9 @@ export default async function ProfilePage() {
           value={`${stats?.accuracy ?? 0}%`}
         />
       </div>
+
+      {/* Settings */}
+      <NotificationToggle />
 
       {/* Prediction history */}
       <div className="space-y-2">
