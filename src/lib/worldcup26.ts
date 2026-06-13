@@ -34,6 +34,7 @@ export interface WC26Game {
   status: "upcoming" | "live" | "completed";
   live_minute: number | null;
   live_period: "HT" | null;
+  winner: "home" | "away" | "draw" | null;
 }
 
 function mapStatus(status: string): "upcoming" | "live" | "completed" {
@@ -55,6 +56,10 @@ function transform(m: FDMatch): WC26Game {
     status,
     live_minute: m.minute ?? null,
     live_period: m.status === "PAUSED" ? "HT" : null,
+    winner: m.score.winner === "HOME_TEAM" ? "home"
+          : m.score.winner === "AWAY_TEAM" ? "away"
+          : m.score.winner === "DRAW" ? "draw"
+          : null,
   };
 }
 

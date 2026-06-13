@@ -66,10 +66,8 @@ export async function GET(request: Request) {
       }
 
       let justCompleted = false;
-      if (game.status === "completed" && game.home_score !== null && game.away_score !== null && hasStarted) {
-        if (game.home_score > game.away_score) updatePayload.winner = "home";
-        else if (game.away_score > game.home_score) updatePayload.winner = "away";
-        else updatePayload.winner = "draw";
+      if (game.status === "completed" && game.winner !== null && hasStarted) {
+        updatePayload.winner = game.winner;
         updatePayload.scores_calculated = false;
         justCompleted = dbMatch.status !== "completed";
       }
@@ -107,9 +105,9 @@ export async function GET(request: Request) {
 
       // ── Result notification: send once when match just completed ──
       if (justCompleted && !dbMatch.result_notification_sent) {
-        const homeScore = game.home_score!;
-        const awayScore = game.away_score!;
-        const winner = homeScore > awayScore ? "home" : awayScore > homeScore ? "away" : "draw";
+        const homeScore = game.home_score ?? 0;
+        const awayScore = game.away_score ?? 0;
+        const winner = game.winner!
 
         // Get all predictions for this match
         const { data: predictions } = await supabase
