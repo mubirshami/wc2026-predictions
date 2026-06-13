@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { MatchCard } from "@/components/match-card";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -63,21 +64,40 @@ interface MatchesViewProps {
 export function MatchesView({ matches: initialMatches }: MatchesViewProps) {
   const [matches, setMatches] = useState(initialMatches);
   const [selectedGroup, setSelectedGroup] = useState("All");
+  const router = useRouter();
 
+  // Realtime subscription with reconnection on error
   useEffect(() => {
     const supabase = createClient();
-    const channel = supabase
-      .channel("matches-realtime")
-      .on("postgres_changes", { event: "UPDATE", schema: "public", table: "matches" }, (payload) => {
-        setMatches((prev) =>
-          prev.map((m) =>
-            m.id === payload.new.id ? { ...m, ...payload.new, user_prediction: m.user_prediction } : m
-          )
-        );
-      })
-      .subscribe();
+
+    function subscribe() {
+      return supabase
+        .channel("matches-realtime")
+        .on("postgres_changes", { event: "UPDATE", schema: "public", table: "matches" }, (payload) => {
+          setMatches((prev) =>
+            prev.map((m) =>
+              m.id === payload.new.id ? { ...m, ...payload.new, user_prediction: m.user_prediction } : m
+            )
+          );
+        })
+        .subscribe((status) => {
+          if (status === "CHANNEL_ERROR" || status === "CLOSED") {
+            setTimeout(() => { supabase.removeAllChannels(); subscribe(); }, 3000);
+          }
+        });
+    }
+
+    const channel = subscribe();
     return () => { supabase.removeChannel(channel); };
   }, []);
+
+  // Polling fallback — refreshes server component data in case Realtime misses an update
+  useEffect(() => {
+    const hasLive = matches.some((m) => m.status === "live");
+    const interval = hasLive ? 30_000 : 60_000;
+    const timer = setInterval(() => router.refresh(), interval);
+    return () => clearInterval(timer);
+  }, [matches, router]);
 
   const live = matches.filter((m) => m.status === "live");
   const upcoming = matches.filter((m) => m.status === "upcoming");
