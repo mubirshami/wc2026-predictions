@@ -1,5 +1,7 @@
 const BASE_URL = "https://api.football-data.org/v4";
 
+const HEADERS = () => ({ "X-Auth-Token": process.env.FOOTBALL_DATA_KEY ?? "" });
+
 interface FDTeam {
   id: number;
   name: string;
@@ -31,6 +33,7 @@ export interface WC26Game {
   away_scorers: string[];
   status: "upcoming" | "live" | "completed";
   live_minute: number | null;
+  live_period: "HT" | null;
 }
 
 function mapStatus(status: string): "upcoming" | "live" | "completed" {
@@ -51,17 +54,46 @@ function transform(m: FDMatch): WC26Game {
     away_scorers: [],
     status,
     live_minute: m.minute ?? null,
+    live_period: m.status === "PAUSED" ? "HT" : null,
   };
+}
+
+async function fetchLiveMinute(matchId: string): Promise<number | null> {
+  try {
+    const res = await fetch(`${BASE_URL}/matches/${matchId}`, {
+      headers: HEADERS(),
+      next: { revalidate: 0 },
+    });
+    if (!res.ok) return null;
+    const m: FDMatch = await res.json();
+    return m.minute ?? null;
+  } catch {
+    return null;
+  }
 }
 
 export async function fetchAllGames(): Promise<WC26Game[]> {
   const res = await fetch(`${BASE_URL}/competitions/WC/matches`, {
-    headers: { "X-Auth-Token": process.env.FOOTBALL_DATA_KEY ?? "" },
+    headers: HEADERS(),
     next: { revalidate: 0 },
   });
   if (!res.ok) throw new Error(`football-data.org ${res.status}: ${await res.text()}`);
   const data: FDResponse = await res.json();
-  return (data.matches ?? [])
+
+  const games = (data.matches ?? [])
     .filter((m) => m.homeTeam.name && m.awayTeam.name)
     .map(transform);
+
+  // For live matches, fetch individual details to get the current minute
+  const liveGames = games.filter((g) => g.status === "live");
+  if (liveGames.length > 0) {
+    await Promise.allSettled(
+      liveGames.map(async (game) => {
+        const minute = await fetchLiveMinute(game.id);
+        if (minute !== null) game.live_minute = minute;
+      })
+    );
+  }
+
+  return games;
 }

@@ -29,6 +29,7 @@ export interface Match {
   home_scorers: string[] | null;
   away_scorers: string[] | null;
   live_minute: number | null;
+  live_period: "HT" | null;
   winner: PredictionOption | null;
   result_source: "api" | "manual" | null;
   scores_calculated: boolean;

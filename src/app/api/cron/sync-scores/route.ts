@@ -55,6 +55,7 @@ export async function GET(request: Request) {
         status: safeStatus,
         result_source: "api",
         live_minute: game.live_minute,
+        live_period: game.live_period,
         home_scorers: game.home_scorers,
         away_scorers: game.away_scorers,
       };

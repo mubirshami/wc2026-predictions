@@ -83,7 +83,7 @@ export function MatchCard({ match }: MatchCardProps) {
           {isLive ? (
             <span className="flex items-center gap-1.5 font-bold text-primary text-xs uppercase tracking-wide">
               <span className="live-indicator h-1.5 w-1.5 rounded-full bg-primary" />
-              Live{match.live_minute ? ` · ${match.live_minute}'` : ""}
+              {match.live_period === "HT" ? "Half Time" : `Live${match.live_minute ? ` · ${match.live_minute}'` : ""}`}
             </span>
           ) : isCompleted ? (
             <span className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">Full Time</span>
