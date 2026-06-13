@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { Navbar } from "@/components/navbar";
-import { Linkedin, MessageSquarePlus } from "lucide-react";
+import { Linkedin } from "lucide-react";
 
 export default async function MainLayout({
   children,
@@ -49,8 +49,8 @@ export default async function MainLayout({
         </div>
       </footer>
 
-      {/* Floating feedback button */}
-      <a
+      {/* Floating feedback button — hidden for now */}
+      {/* <a
         href="https://tally.so/r/lb4abX"
         target="_blank"
         rel="noopener noreferrer"
@@ -58,7 +58,7 @@ export default async function MainLayout({
       >
         <MessageSquarePlus className="h-3.5 w-3.5" />
         Feedback
-      </a>
+      </a> */}
     </div>
   );
 }
