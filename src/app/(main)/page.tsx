@@ -1,7 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { MatchesView } from "@/components/matches-view";
 
-export const revalidate = 30;
+export const revalidate = 5;
 
 export default async function HomePage() {
   const supabase = await createClient();
