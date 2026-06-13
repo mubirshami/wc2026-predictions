@@ -6,7 +6,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import type { LeaderboardEntry } from "@/types";
 import { cn } from "@/lib/utils";
 
-export const revalidate = 60;
+export const revalidate = 10;
 
 const MEDAL: Record<number, string> = { 1: "🥇", 2: "🥈", 3: "🥉" };
 
