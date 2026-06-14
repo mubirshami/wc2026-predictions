@@ -54,8 +54,8 @@ export function Navbar({ profile }: NavbarProps) {
         {/* Logo */}
         <Link href="/matches" className="flex items-center gap-2.5 font-bold group">
           <Image src="/official-wc-logo.png" alt="WC 2026" width={36} height={36} className="rounded-sm transition-transform group-hover:scale-105" />
-          <span className="hidden sm:block text-sm font-semibold tracking-tight">WC 2026 Predictions</span>
-          <span className="block sm:hidden text-sm font-semibold">WC 2026</span>
+          <span className="hidden sm:block text-sm font-semibold tracking-tight">Scoracle</span>
+          <span className="block sm:hidden text-sm font-semibold">Scoracle</span>
         </Link>
 
         {/* Nav links */}

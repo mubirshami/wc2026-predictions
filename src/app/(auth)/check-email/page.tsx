@@ -37,7 +37,7 @@ function CheckEmailContent() {
           <ol className="text-sm text-muted-foreground space-y-1.5 list-none">
             <li className="flex items-start gap-2">
               <span className="text-primary font-bold shrink-0">1.</span>
-              Open the email from WC 2026 Predictions
+              Open the email from Scoracle
             </li>
             <li className="flex items-start gap-2">
               <span className="text-primary font-bold shrink-0">2.</span>

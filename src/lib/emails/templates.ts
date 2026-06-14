@@ -4,7 +4,7 @@ export function confirmSignupHtml(confirmationUrl: string): string {
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Confirm your email — WC 2026 Predictions</title>
+  <title>Confirm your email — Scoracle</title>
 </head>
 <body style="margin:0;padding:0;background-color:#0a0f1e;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">
   <span style="display:none;max-height:0;overflow:hidden;">
@@ -118,7 +118,7 @@ export function resetPasswordHtml(confirmationUrl: string): string {
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Reset your password — WC 2026 Predictions</title>
+  <title>Reset your password — Scoracle</title>
 </head>
 <body style="margin:0;padding:0;background-color:#0a0f1e;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">
   <span style="display:none;max-height:0;overflow:hidden;">
@@ -208,7 +208,7 @@ export function magicLinkHtml(confirmationUrl: string): string {
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Your sign-in link — WC 2026 Predictions</title>
+  <title>Your sign-in link — Scoracle</title>
 </head>
 <body style="margin:0;padding:0;background-color:#0a0f1e;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">
   <span style="display:none;max-height:0;overflow:hidden;">
