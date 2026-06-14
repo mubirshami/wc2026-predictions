@@ -29,31 +29,15 @@ interface EmailPayload {
   };
 }
 
-async function verifySupabaseSignature(rawBody: string, signatureHeader: string | null): Promise<boolean> {
-  const secret = process.env.SEND_EMAIL_HOOK_SECRET;
-  if (!secret || !signatureHeader) return false;
-
-  // Header format: "v1,whsec_<base64secret>" → extract the base64 part
-  const keyB64 = secret.replace(/^v1,whsec_/, "");
-  const keyBytes = Uint8Array.from(atob(keyB64), (c) => c.charCodeAt(0));
-  const cryptoKey = await crypto.subtle.importKey("raw", keyBytes, { name: "HMAC", hash: "SHA-256" }, false, ["verify"]);
-
-  // Supabase sends "v1=<hex-signature>"
-  const sigHex = signatureHeader.replace(/^v1=/, "");
-  const sigBytes = Uint8Array.from(sigHex.match(/.{2}/g)!.map((b) => parseInt(b, 16)));
-
-  const bodyBytes = new TextEncoder().encode(rawBody);
-  return crypto.subtle.verify("HMAC", cryptoKey, sigBytes, bodyBytes);
-}
-
 export async function POST(request: Request) {
-  const rawBody = await request.text();
+  const authHeader = request.headers.get("authorization");
+  const secret = process.env.SEND_EMAIL_HOOK_SECRET;
 
-  const signature = request.headers.get("x-supabase-signature");
-  const valid = await verifySupabaseSignature(rawBody, signature);
-  if (!valid) {
+  if (!secret || authHeader !== `Bearer ${secret}`) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
+
+  const rawBody = await request.text();
 
   try {
     const payload: EmailPayload = JSON.parse(rawBody);
