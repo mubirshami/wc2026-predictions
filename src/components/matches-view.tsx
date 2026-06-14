@@ -65,11 +65,13 @@ export function MatchesView({ matches: initialMatches }: MatchesViewProps) {
   const [matches, setMatches] = useState(initialMatches);
   const [selectedGroup, setSelectedGroup] = useState("All");
   const [predFilter, setPredFilter] = useState<"all" | "open">("all");
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const router = useRouter();
 
   // Sync server-refreshed data into state (router.refresh() updates props but not useState)
   useEffect(() => {
     setMatches(initialMatches);
+    setIsRefreshing(false);
   }, [initialMatches]);
 
   const live = matches.filter((m) => m.status === "live");
@@ -113,7 +115,7 @@ export function MatchesView({ matches: initialMatches }: MatchesViewProps) {
   // Refresh immediately when user returns to the app (PWA resume / tab switch back)
   useEffect(() => {
     function onVisible() {
-      if (document.visibilityState === "visible") router.refresh();
+      if (document.visibilityState === "visible") { setIsRefreshing(true); router.refresh(); }
     }
     document.addEventListener("visibilitychange", onVisible);
     return () => document.removeEventListener("visibilitychange", onVisible);
@@ -128,7 +130,7 @@ export function MatchesView({ matches: initialMatches }: MatchesViewProps) {
       return diff >= 0 && diff < 10 * 60 * 1000;
     });
     const interval = hasLive || hasNearKickoff ? 20_000 : 60_000;
-    const timer = setInterval(() => router.refresh(), interval);
+    const timer = setInterval(() => { setIsRefreshing(true); router.refresh(); }, interval);
     return () => clearInterval(timer);
   }, [matches, router]);
 
@@ -152,7 +154,12 @@ export function MatchesView({ matches: initialMatches }: MatchesViewProps) {
   return (
     <div className="space-y-5 animate-fade-in">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold tracking-tight">Matches</h1>
+        <div className="flex items-center gap-2.5">
+          <h1 className="text-2xl font-bold tracking-tight">Matches</h1>
+          {isRefreshing && (
+            <span className="h-2 w-2 rounded-full bg-muted-foreground/40 animate-pulse" />
+          )}
+        </div>
         {live.length > 0 && (
           <span className="flex items-center gap-1.5 text-sm text-primary font-medium">
             <span className="live-indicator h-2 w-2 rounded-full bg-primary inline-block" />
