@@ -110,6 +110,15 @@ export function MatchesView({ matches: initialMatches }: MatchesViewProps) {
     prevLiveCount.current = live.length;
   }, [live.length]);
 
+  // Refresh immediately when user returns to the app (PWA resume / tab switch back)
+  useEffect(() => {
+    function onVisible() {
+      if (document.visibilityState === "visible") router.refresh();
+    }
+    document.addEventListener("visibilitychange", onVisible);
+    return () => document.removeEventListener("visibilitychange", onVisible);
+  }, [router]);
+
   // Polling fallback — poll aggressively near kickoff and during live matches
   useEffect(() => {
     const hasLive = matches.some((m) => m.status === "live");
