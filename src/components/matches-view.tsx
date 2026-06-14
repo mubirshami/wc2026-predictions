@@ -67,6 +67,11 @@ export function MatchesView({ matches: initialMatches }: MatchesViewProps) {
   const [predFilter, setPredFilter] = useState<"all" | "open">("all");
   const router = useRouter();
 
+  // Sync server-refreshed data into state (router.refresh() updates props but not useState)
+  useEffect(() => {
+    setMatches(initialMatches);
+  }, [initialMatches]);
+
   const live = matches.filter((m) => m.status === "live");
   const upcoming = matches.filter((m) => m.status === "upcoming");
   const completed = matches.filter((m) => m.status === "completed");

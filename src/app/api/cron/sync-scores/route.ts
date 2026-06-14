@@ -21,15 +21,16 @@ export async function GET(request: Request) {
 
   try {
     const games = await fetchAllGames();
-    const gameMap = new Map<string, (typeof games)[0]>();
+    const gameById = new Map<string, (typeof games)[0]>();
+    const gameByName = new Map<string, (typeof games)[0]>();
     for (const game of games) {
-      const key = `${game.home_team.toLowerCase()}|${game.away_team.toLowerCase()}`;
-      gameMap.set(key, game);
+      gameById.set(game.id, game);
+      gameByName.set(`${game.home_team.toLowerCase()}|${game.away_team.toLowerCase()}`, game);
     }
 
     const { data: dbMatches, error: dbError } = await supabase
       .from("matches")
-      .select("id, home_team, away_team, status, home_score, away_score, kickoff_at, winner, reminder_sent, result_notification_sent")
+      .select("id, api_football_id, home_team, away_team, status, home_score, away_score, kickoff_at, winner, reminder_sent, result_notification_sent")
       .in("status", ["upcoming", "live"]);
 
     if (dbError) throw new Error(dbError.message);
@@ -37,8 +38,9 @@ export async function GET(request: Request) {
     const now = Date.now();
 
     for (const dbMatch of dbMatches ?? []) {
-      const key = `${dbMatch.home_team.toLowerCase()}|${dbMatch.away_team.toLowerCase()}`;
-      const game = gameMap.get(key);
+      // Prefer matching by API ID; fall back to team name for unlinked rows
+      const game = (dbMatch.api_football_id ? gameById.get(String(dbMatch.api_football_id)) : undefined)
+        ?? gameByName.get(`${dbMatch.home_team.toLowerCase()}|${dbMatch.away_team.toLowerCase()}`);
 
       if (!game) continue;
 

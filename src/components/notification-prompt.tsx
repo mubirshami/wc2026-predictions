@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { Bell, X } from "lucide-react";
 import { saveSubscription } from "@/app/actions/notifications";
 
-const DISMISSED_KEY = "scoracle_notif_dismissed";
+const DISMISSED_KEY = "scoracle_notif_dismissed_v2";
 
 export function NotificationPrompt() {
   const [show, setShow] = useState(false);
@@ -14,11 +14,29 @@ export function NotificationPrompt() {
     if (
       !("Notification" in window) ||
       !("serviceWorker" in navigator) ||
-      !("PushManager" in window) ||
-      Notification.permission === "granted" ||
-      Notification.permission === "denied" ||
-      localStorage.getItem(DISMISSED_KEY)
+      !("PushManager" in window)
     ) return;
+
+    // Already granted — silently re-subscribe if subscription was cleared from DB
+    if (Notification.permission === "granted") {
+      navigator.serviceWorker.ready.then(async (reg) => {
+        const existing = await reg.pushManager.getSubscription();
+        if (!existing) {
+          try {
+            const sub = await reg.pushManager.subscribe({
+              userVisibleOnly: true,
+              applicationServerKey: urlBase64ToUint8Array(
+                process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY!
+              ),
+            });
+            await saveSubscription(JSON.stringify(sub));
+          } catch {}
+        }
+      });
+      return;
+    }
+
+    if (Notification.permission === "denied" || localStorage.getItem(DISMISSED_KEY)) return;
 
     // Show after a short delay — let the page settle first
     const t = setTimeout(() => setShow(true), 5000);
