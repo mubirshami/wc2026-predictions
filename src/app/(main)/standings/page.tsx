@@ -133,13 +133,15 @@ export default async function StandingsPage() {
               {/* Rows */}
               <div className="divide-y divide-border/30">
                 {rows.map((row, i) => {
-                  const qualified = i < 2; // top 2 advance (adjust if format differs)
+                  const qualified = i < 2;
+                  const thirdPlace = i === 2;
                   return (
                     <div
                       key={row.team}
                       className={cn(
                         "grid items-center px-4 py-2.5 transition-colors hover:bg-muted/20",
-                        qualified && "bg-primary/3"
+                        qualified && "bg-primary/3",
+                        thirdPlace && "bg-amber-500/3"
                       )}
                       style={{ gridTemplateColumns: "1fr repeat(8, auto)" }}
                     >
@@ -147,7 +149,7 @@ export default async function StandingsPage() {
                       <div className="flex items-center gap-2.5 min-w-0">
                         <span className={cn(
                           "text-sm font-bold w-4 shrink-0 tabular-nums",
-                          qualified ? "text-primary" : "text-muted-foreground"
+                          qualified ? "text-primary" : thirdPlace ? "text-amber-500" : "text-muted-foreground"
                         )}>
                           {i + 1}
                         </span>
@@ -162,6 +164,11 @@ export default async function StandingsPage() {
                         {qualified && (
                           <span className="hidden sm:block text-xs text-primary/70 bg-primary/10 px-1.5 py-0.5 rounded-full font-medium shrink-0">
                             ADV
+                          </span>
+                        )}
+                        {thirdPlace && (
+                          <span className="hidden sm:block text-xs text-amber-500/80 bg-amber-500/10 px-1.5 py-0.5 rounded-full font-medium shrink-0">
+                            TBD
                           </span>
                         )}
                       </div>
@@ -187,9 +194,15 @@ export default async function StandingsPage() {
               </div>
 
               {/* Advancement legend */}
-              <div className="px-4 py-2 border-t border-border/30 flex items-center gap-1.5">
-                <span className="h-2 w-2 rounded-full bg-primary/40 shrink-0" />
-                <span className="text-xs text-muted-foreground">Top 2 advance to Round of 32</span>
+              <div className="px-4 py-2 border-t border-border/30 flex items-center gap-4">
+                <div className="flex items-center gap-1.5">
+                  <span className="h-2 w-2 rounded-full bg-primary/50 shrink-0" />
+                  <span className="text-xs text-muted-foreground">Top 2 advance</span>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <span className="h-2 w-2 rounded-full bg-amber-500/50 shrink-0" />
+                  <span className="text-xs text-muted-foreground">Best 8 of 12 third-placed teams advance</span>
+                </div>
               </div>
             </div>
           );
