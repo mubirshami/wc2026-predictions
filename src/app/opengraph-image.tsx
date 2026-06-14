@@ -2,7 +2,7 @@ import { ImageResponse } from "next/og";
 import { readFileSync } from "fs";
 import path from "path";
 
-export const alt = "WC 2026 Predictions — Predict. Compete. Win.";
+export const alt = "Scoracle — FIFA World Cup 2026 Prediction League";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
@@ -78,7 +78,7 @@ export default function OgImage() {
                 letterSpacing: "-0.02em",
               }}
             >
-              WC 2026
+              Scor
             </span>
             <span
               style={{
@@ -89,7 +89,7 @@ export default function OgImage() {
                 letterSpacing: "-0.02em",
               }}
             >
-              Predictions
+              acle
             </span>
           </div>
         </div>

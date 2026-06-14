@@ -17,6 +17,7 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://scoracle-xi.vercel.app"),
   title: {
     default: siteConfig.name,
     template: `%s · ${siteConfig.name}`,
