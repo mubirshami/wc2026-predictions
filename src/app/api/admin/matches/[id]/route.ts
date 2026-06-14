@@ -41,6 +41,10 @@ export async function PATCH(
   const body = await request.json();
   const { home_score, away_score, status, manual_winner } = body;
 
+  if (manual_winner !== undefined && !["home", "away", "draw"].includes(manual_winner)) {
+    return NextResponse.json({ error: "Invalid winner value" }, { status: 400 });
+  }
+
   // Fetch existing match for stage
   const { data: existingMatch } = await supabase
     .from("matches")
