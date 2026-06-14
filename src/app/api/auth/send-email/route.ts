@@ -30,13 +30,6 @@ interface EmailPayload {
 }
 
 export async function POST(request: Request) {
-  const authHeader = request.headers.get("authorization");
-  const secret = process.env.SEND_EMAIL_HOOK_SECRET;
-
-  if (!secret || authHeader !== `Bearer ${secret}`) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-
   const rawBody = await request.text();
 
   try {
