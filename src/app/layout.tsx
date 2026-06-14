@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
 import { Toaster } from "sonner";
 import { Analytics } from "@vercel/analytics/next";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 import { siteConfig } from "@/lib/config";
 import { ThemeProvider } from "@/components/theme-provider";
 import { InstallPrompt } from "@/components/install-prompt";
@@ -60,6 +61,7 @@ export default function RootLayout({
           <SwUpdater />
           <Toaster position="top-right" richColors closeButton />
           <Analytics />
+          <SpeedInsights />
         </ThemeProvider>
       </body>
     </html>
