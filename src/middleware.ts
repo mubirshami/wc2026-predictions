@@ -47,7 +47,7 @@ export async function middleware(request: NextRequest) {
     pathname.startsWith("/api/cron") ||
     pathname.startsWith("/api/auth/send-email");
   const isAuthCallback = pathname.startsWith("/auth/callback");
-  const isPublicFile = pathname === "/manifest.webmanifest";
+  const isPublicFile = pathname === "/manifest.webmanifest" || pathname === "/opengraph-image";
   const isAdminRoute = pathname.startsWith("/admin");
   const isCompleteProfile = pathname.startsWith("/complete-profile");
 
