@@ -1,18 +1,18 @@
 import { NextResponse } from "next/server";
-import { fetchAllMatches } from "@/lib/football-data";
 
 export async function GET() {
-  const matches = await fetchAllMatches();
-
-  const teams = new Map<string, string>();
-  for (const m of matches) {
-    if (m.homeTeam.name) teams.set(m.homeTeam.name, m.homeTeam.tla);
-    if (m.awayTeam.name) teams.set(m.awayTeam.name, m.awayTeam.tla);
+  const res = await fetch("https://worldcup26.ir/get/games", { cache: "no-store" });
+  if (!res.ok) {
+    return NextResponse.json({ error: `worldcup26.ir ${res.status}` }, { status: 502 });
   }
-
-  const sorted = [...teams.entries()]
-    .sort((a, b) => a[0].localeCompare(b[0]))
-    .map(([name, tla]) => ({ name, tla }));
-
-  return NextResponse.json(sorted);
+  const data = await res.json();
+  const games = (data.games ?? []).slice(0, 10).map((g: Record<string, string>) => ({
+    home: g.home_team_name_en,
+    away: g.away_team_name_en,
+    finished: g.finished,
+    time_elapsed: g.time_elapsed,
+    home_score: g.home_score,
+    away_score: g.away_score,
+  }));
+  return NextResponse.json({ total: data.games?.length, sample: games });
 }
