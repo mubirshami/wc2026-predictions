@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
-import { fetchAllGames } from "@/lib/worldcup26";
+import { fetchESPNGames } from "@/lib/espn";
 import { sendToUser } from "@/lib/notifications";
 
 export async function GET(request: Request) {
@@ -20,11 +20,9 @@ export async function GET(request: Request) {
   const errors: string[] = [];
 
   try {
-    const games = await fetchAllGames();
-    const gameById = new Map<string, (typeof games)[0]>();
+    const games = await fetchESPNGames();
     const gameByName = new Map<string, (typeof games)[0]>();
     for (const game of games) {
-      gameById.set(game.id, game);
       gameByName.set(`${game.home_team.toLowerCase()}|${game.away_team.toLowerCase()}`, game);
     }
 
@@ -39,8 +37,7 @@ export async function GET(request: Request) {
 
     for (const dbMatch of dbMatches ?? []) {
       // Prefer matching by API ID; fall back to team name for unlinked rows
-      const game = (dbMatch.api_football_id ? gameById.get(String(dbMatch.api_football_id)) : undefined)
-        ?? gameByName.get(`${dbMatch.home_team.toLowerCase()}|${dbMatch.away_team.toLowerCase()}`);
+      const game = gameByName.get(`${dbMatch.home_team.toLowerCase()}|${dbMatch.away_team.toLowerCase()}`);
 
       if (!game) continue;
 
