@@ -12,10 +12,15 @@ export default async function HomePage() {
 
   if (!user) return null;
 
-  const [{ data: matches }, { data: predictions }] = await Promise.all([
-    supabase.from("matches").select("*").order("kickoff_at", { ascending: true }),
-    supabase.from("predictions").select("*").eq("user_id", user.id),
-  ]);
+  const { data: matches } = await supabase
+    .from("matches")
+    .select("*")
+    .order("kickoff_at", { ascending: true });
+
+  const { data: predictions } = await supabase
+    .from("predictions")
+    .select("*")
+    .eq("user_id", user.id);
 
   const predictionMap = new Map(
     (predictions ?? []).map((p) => [p.match_id, p])
