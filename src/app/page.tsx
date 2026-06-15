@@ -13,7 +13,7 @@ export default async function LandingPage() {
 
   // Social proof stats
   const [{ count: playerCount }, { count: predictionCount }] = await Promise.all([
-    supabase.from("profiles").select("*", { count: "exact", head: true }),
+    supabase.from("profiles").select("*", { count: "exact", head: true }).not("username", "is", null),
     supabase.from("predictions").select("*", { count: "exact", head: true }),
   ]);
 
