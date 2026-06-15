@@ -129,7 +129,6 @@ export function MatchCard({ match }: MatchCardProps) {
             <span className="text-sm font-semibold text-center leading-tight line-clamp-2">
               {match.home_team}
             </span>
-            <ScorersList scorers={match.home_scorers} />
           </div>
 
           {/* Score / VS */}
@@ -175,7 +174,6 @@ export function MatchCard({ match }: MatchCardProps) {
             <span className="text-sm font-semibold text-center leading-tight line-clamp-2">
               {match.away_team}
             </span>
-            <ScorersList scorers={match.away_scorers} />
           </div>
         </div>
       </div>
@@ -414,17 +412,4 @@ function predictionLabel(prediction: PredictionOption, match: MatchWithPredictio
   if (prediction === "draw") return "Draw";
   const team = prediction === "home" ? match.home_team : match.away_team;
   return `${team} to win`;
-}
-
-function ScorersList({ scorers }: { scorers: string[] | null | undefined }) {
-  if (!scorers || scorers.length === 0) return null;
-  return (
-    <div className="flex flex-col items-center gap-0.5 w-full">
-      {scorers.map((s, i) => (
-        <span key={i} className="text-xs text-muted-foreground text-center leading-tight">
-          ⚽ {s}
-        </span>
-      ))}
-    </div>
-  );
 }
