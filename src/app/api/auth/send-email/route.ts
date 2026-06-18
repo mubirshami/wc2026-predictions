@@ -38,7 +38,7 @@ export async function POST(request: Request) {
     const { token_hash, email_action_type, redirect_to } = email_data;
 
     const appBase = redirect_to.replace(/\/auth\/callback.*$/, "");
-    const confirmationUrl = `${appBase}/auth/callback?token_hash=${token_hash}&type=${email_action_type}`;
+    const confirmationUrl = `${appBase}/auth/callback?token_hash=${token_hash}&amp;type=${email_action_type}`;
 
     let subject: string;
     let html: string;
