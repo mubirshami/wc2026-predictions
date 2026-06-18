@@ -26,6 +26,10 @@ export async function GET(request: Request) {
   }
 
   if (!error && user) {
+    if (type === "recovery") {
+      return NextResponse.redirect(`${origin}/reset-password`);
+    }
+
     const { data: profile } = await supabase
       .from("profiles")
       .select("username")
