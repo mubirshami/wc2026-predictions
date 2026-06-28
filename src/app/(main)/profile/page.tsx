@@ -193,11 +193,15 @@ export default async function ProfilePage() {
                             className={
                               pred.points_awarded > 0
                                 ? "text-sm font-bold text-emerald-400"
+                                : pred.points_awarded < 0
+                                ? "text-sm font-bold text-red-400"
                                 : "text-sm text-muted-foreground"
                             }
                           >
                             {pred.points_awarded > 0
                               ? `+${pred.points_awarded}`
+                              : pred.points_awarded < 0
+                              ? `${pred.points_awarded}`
                               : "0"}
                           </span>
                         )}

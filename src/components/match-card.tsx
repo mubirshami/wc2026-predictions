@@ -274,9 +274,9 @@ export function MatchCard({ match }: MatchCardProps) {
             {(isCorrect || isWrong) && pointsAwarded != null && (
               <span className={cn(
                 "text-sm font-bold tabular-nums",
-                pointsAwarded > 0 ? "text-emerald-400" : "text-muted-foreground/40"
+                pointsAwarded > 0 ? "text-emerald-400" : pointsAwarded < 0 ? "text-red-400" : "text-muted-foreground/40"
               )}>
-                {pointsAwarded > 0 ? `+${pointsAwarded}` : "0"} pts
+                {pointsAwarded > 0 ? `+${pointsAwarded}` : pointsAwarded < 0 ? `${pointsAwarded}` : "0"} pts
               </span>
             )}
           </div>
@@ -309,6 +309,15 @@ export function MatchCard({ match }: MatchCardProps) {
               <p className="text-sm font-semibold">
                 {pendingConfirm ? predictionLabel(pendingConfirm, match) : ""}
               </p>
+            )}
+
+            {!isGroup && (
+              <div className="flex items-center gap-3 rounded-lg border border-border/50 bg-muted/30 px-3 py-2">
+                <span className="text-xs text-muted-foreground">Scoring</span>
+                <span className="text-xs font-semibold text-emerald-400">Correct +5</span>
+                <span className="text-xs text-muted-foreground/40">·</span>
+                <span className="text-xs font-semibold text-red-400">Wrong −10</span>
+              </div>
             )}
           </div>
 

@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { AdminMatchesTable } from "@/components/admin/admin-matches-table";
 import { SyncFixturesButton } from "@/components/admin/sync-fixtures-button";
 import { SyncScoresButton } from "@/components/admin/sync-scores-button";
+import { NotifyAllButton } from "@/components/admin/notify-all-button";
 
 export const revalidate = 0;
 
@@ -38,6 +39,7 @@ export default async function AdminPage() {
           </p>
         </div>
         <div className="flex items-center gap-2">
+          <NotifyAllButton />
           <SyncScoresButton />
           <SyncFixturesButton />
         </div>
