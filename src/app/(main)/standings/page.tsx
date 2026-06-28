@@ -57,7 +57,7 @@ function matchToSlot(m: Match): BracketSlot {
     away:      m.away_team,
     homeScore: m.home_score,
     awayScore: m.away_score,
-    winner:    m.winner ?? null,
+    winner:    (m.winner === "home" || m.winner === "away" ? m.winner : null) as "home" | "away" | null,
     status:    m.status,
   };
 }
