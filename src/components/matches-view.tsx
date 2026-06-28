@@ -18,6 +18,7 @@ import {
 import type { MatchWithPrediction } from "@/types";
 
 const HINT_KEY = "scoracle_prediction_hint_dismissed";
+const KNOCKOUT_SCORING_KEY = "scoracle_knockout_scoring_dismissed";
 
 function PredictionHint() {
   const [visible, setVisible] = useState(false);
@@ -48,6 +49,43 @@ function PredictionHint() {
       </div>
       <button
         onClick={dismiss}
+        className="shrink-0 text-muted-foreground hover:text-foreground transition-colors mt-0.5"
+        aria-label="Dismiss"
+      >
+        <X className="h-4 w-4" />
+      </button>
+    </div>
+  );
+}
+
+function KnockoutScoringBanner() {
+  const [visible, setVisible] = useState(false);
+
+  useEffect(() => {
+    if (!localStorage.getItem(KNOCKOUT_SCORING_KEY)) setVisible(true);
+  }, []);
+
+  if (!visible) return null;
+
+  return (
+    <div className="flex items-start justify-between gap-3 rounded-xl border border-amber-500/20 bg-amber-500/5 px-4 py-3">
+      <div className="flex items-start gap-2.5">
+        <span className="text-base shrink-0 mt-0.5">⚡</span>
+        <div className="space-y-1">
+          <p className="text-sm font-semibold text-foreground">Knockout scoring is now live</p>
+          <p className="text-sm text-muted-foreground">
+            Round of 32 onwards — correct prediction:{" "}
+            <span className="font-semibold text-emerald-400">+5 pts</span>
+            {"  ·  "}wrong prediction:{" "}
+            <span className="font-semibold text-red-400">−10 pts</span>
+          </p>
+        </div>
+      </div>
+      <button
+        onClick={() => {
+          localStorage.setItem(KNOCKOUT_SCORING_KEY, "1");
+          setVisible(false);
+        }}
         className="shrink-0 text-muted-foreground hover:text-foreground transition-colors mt-0.5"
         aria-label="Dismiss"
       >
@@ -168,6 +206,7 @@ export function MatchesView({ matches: initialMatches }: MatchesViewProps) {
         )}
       </div>
 
+      <KnockoutScoringBanner />
       <PredictionHint />
 
       <Tabs value={activeTab} onValueChange={(v) => { setSelectedGroup("All"); setActiveTab(v); }}>
