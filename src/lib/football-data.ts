@@ -48,14 +48,18 @@ export function mapFDStatus(status: string): "upcoming" | "live" | "completed" {
 
 export function mapFDStage(stage: string): string {
   switch (stage) {
-    case "GROUP_STAGE":   return "group";
-    case "ROUND_OF_32":   return "round_of_32";
-    case "ROUND_OF_16":   return "round_of_16";
-    case "QUARTER_FINALS": return "quarter_final";
-    case "SEMI_FINALS":   return "semi_final";
-    case "THIRD_PLACE":   return "third_place";
-    case "FINAL":         return "final";
-    default:              return "group";
+    case "GROUP_STAGE":    return "group";
+    case "ROUND_OF_32":
+    case "LAST_32":        return "round_of_32";
+    case "ROUND_OF_16":
+    case "LAST_16":        return "round_of_16";
+    case "QUARTER_FINALS":
+    case "QUARTER_FINAL":  return "quarter_final";
+    case "SEMI_FINALS":
+    case "SEMI_FINAL":     return "semi_final";
+    case "THIRD_PLACE":    return "third_place";
+    case "FINAL":          return "final";
+    default:               return "group";
   }
 }
 
