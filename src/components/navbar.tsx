@@ -4,7 +4,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
 import { useTheme } from "next-themes";
-import { LayoutGrid, Medal, BarChart2, User, LogOut, ShieldCheck, Sun, Moon } from "lucide-react";
+import { LayoutGrid, Medal, GitBranch, User, LogOut, ShieldCheck, Sun, Moon } from "lucide-react";
 import { toast } from "sonner";
 import { createClient } from "@/lib/supabase/client";
 import type { Profile } from "@/types";
@@ -23,7 +23,7 @@ import {
 const NAV_LINKS = [
   { href: "/matches", label: "Matches", icon: LayoutGrid },
   { href: "/leaderboard", label: "Leaderboard", icon: Medal },
-  { href: "/standings", label: "Standings", icon: BarChart2 },
+  { href: "/standings", label: "Bracket", icon: GitBranch },
 ];
 
 interface NavbarProps {
