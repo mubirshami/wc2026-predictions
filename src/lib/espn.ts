@@ -34,6 +34,7 @@ interface ESPNCompetitor {
   homeAway: "home" | "away";
   team: ESPNTeam;
   score?: string;
+  winner?: boolean;
 }
 
 interface ESPNDetail {
@@ -136,9 +137,16 @@ function mapEvent(event: ESPNEvent): ESPNGame | null {
   }
 
   const seasonSlug = event.season?.slug ?? "group-stage";
-  const winner =
-    status === "completed" && homeScore !== null && awayScore !== null
-      ? determineWinner(homeScore, awayScore, seasonSlug)
+  // Use ESPN's own winner flag first (correctly handles penalties/AET)
+  const winner: "home" | "away" | "draw" | null =
+    status === "completed"
+      ? homeComp.winner === true
+        ? "home"
+        : awayComp.winner === true
+        ? "away"
+        : homeScore !== null && awayScore !== null
+        ? determineWinner(homeScore, awayScore, seasonSlug)
+        : null
       : null;
 
   return {

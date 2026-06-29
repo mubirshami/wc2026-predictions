@@ -268,6 +268,8 @@ export function MatchCard({ match }: MatchCardProps) {
                   ? "Correct prediction"
                   : isWrong
                   ? predictionText(currentPrediction!, match)
+                  : currentPrediction && !match.winner
+                  ? "Result pending"
                   : "No prediction"}
               </span>
             </div>
