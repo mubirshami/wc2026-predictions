@@ -15,8 +15,8 @@ export function NotifyAllButton() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          title: "⚡ Knockout scoring is live",
-          message: "Round of 32 onwards: correct +5 pts, wrong −10 pts. Choose wisely.",
+          title: "🔥 Quarter Finals — Stakes just doubled",
+          message: "QF & 3rd: +10/−20 · SF: +20/−30 · Final: +30/−50. One wrong pick can flip the table.",
           url: "/matches",
         }),
       });
