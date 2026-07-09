@@ -17,6 +17,20 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 
+function getStageScoring(stage: string): { correct: number; wrong: number } {
+  switch (stage) {
+    case "quarter_final":
+    case "third_place":
+      return { correct: 10, wrong: -20 };
+    case "semi_final":
+      return { correct: 20, wrong: -30 };
+    case "final":
+      return { correct: 30, wrong: -50 };
+    default:
+      return { correct: 5, wrong: -10 };
+  }
+}
+
 interface MatchCardProps {
   match: MatchWithPrediction;
 }
@@ -39,6 +53,7 @@ export function MatchCard({ match }: MatchCardProps) {
 
   const isCorrect = !!currentPrediction && !!match.winner && currentPrediction === match.winner;
   const isWrong = !!currentPrediction && !!match.winner && currentPrediction !== match.winner;
+  const scoring = getStageScoring(match.stage);
 
   // Tick every 30s to keep lock countdown fresh
   const [, forceUpdate] = useState(0);
@@ -316,9 +331,9 @@ export function MatchCard({ match }: MatchCardProps) {
             {!isGroup && (
               <div className="flex items-center gap-3 rounded-lg border border-border/50 bg-muted/30 px-3 py-2">
                 <span className="text-xs text-muted-foreground">Scoring</span>
-                <span className="text-xs font-semibold text-emerald-400">Correct +5</span>
+                <span className="text-xs font-semibold text-emerald-400">Correct +{scoring.correct}</span>
                 <span className="text-xs text-muted-foreground/40">·</span>
-                <span className="text-xs font-semibold text-red-400">Wrong −10</span>
+                <span className="text-xs font-semibold text-red-400">Wrong −{Math.abs(scoring.wrong)}</span>
               </div>
             )}
           </div>
@@ -424,3 +439,4 @@ function predictionLabel(prediction: PredictionOption, match: MatchWithPredictio
   const team = prediction === "home" ? match.home_team : match.away_team;
   return `${team} to win`;
 }
+
